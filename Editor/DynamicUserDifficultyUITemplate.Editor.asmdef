@@ -1,0 +1,22 @@
+{
+    "name": "DynamicUserDifficultyUITemplate.Editor",
+    "rootNamespace": "TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Editor",
+    "references": [
+        "DynamicUserDifficultyUITemplate",
+        "DynamicUserDifficulty",
+        "UITemplate.Scripts"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "GDK_VCONTAINER"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

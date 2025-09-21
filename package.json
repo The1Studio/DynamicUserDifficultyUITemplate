@@ -1,0 +1,28 @@
+{
+  "name": "com.theone.dynamicuserdifficulty.uitemplateintegration",
+  "version": "1.0.0",
+  "displayName": "Dynamic User Difficulty - UITemplate Integration",
+  "description": "UITemplate integration for Dynamic User Difficulty module. Provides data persistence and signal integration with UITemplate framework.",
+  "unity": "2021.3",
+  "documentationUrl": "https://github.com/The1Studio/DynamicUserDifficultyUITemplate",
+  "dependencies": {
+    "com.theone.dynamicuserdifficulty": "2.0.0",
+    "jp.hadashikick.vcontainer": "1.16.9",
+    "com.unity.nuget.newtonsoft-json": "3.0.0"
+  },
+  "keywords": [
+    "difficulty",
+    "uitemplate",
+    "integration",
+    "the1studio"
+  ],
+  "author": {
+    "name": "TheOne Studio",
+    "email": "support@theonestudio.com",
+    "url": "https://theonestudio.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:The1Studio/DynamicUserDifficultyUITemplate.git"
+  }
+}

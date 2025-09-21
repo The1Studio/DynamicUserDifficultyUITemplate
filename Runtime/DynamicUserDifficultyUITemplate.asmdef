@@ -1,0 +1,27 @@
+{
+    "name": "DynamicUserDifficultyUITemplate",
+    "rootNamespace": "TheOneStudio.DynamicUserDifficulty.UITemplateIntegration",
+    "references": [
+        "DynamicUserDifficulty",
+        "UITemplate.Scripts",
+        "UITemplate.LocalData",
+        "UITemplate.Signal",
+        "UITemplate.Blueprint",
+        "VContainer",
+        "GameFoundation.Scripts",
+        "GameFoundation.Signals",
+        "TheOne.Foundation",
+        "TheOne.Logging"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "GDK_VCONTAINER"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
