@@ -31,9 +31,8 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
         ILevelProgressProvider,
         ITickable
     {
-        private readonly UITemplateDifficultyData difficultyData;
-        private readonly SignalBus signalBus;
-        private readonly IHandleUserDataServices handleUserDataServices;
+        private readonly UITemplateDifficultyData  difficultyData;
+        private readonly SignalBus                 signalBus;
         private readonly IDynamicDifficultyService difficultyService;
 
         // Existing controllers for data we don't duplicate
@@ -57,14 +56,13 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
             UITemplateGameSessionDataController gameSessionController,
             ILoggerManager loggerManager)
         {
-            this.difficultyData = difficultyData;
-            this.signalBus = signalBus;
-            this.handleUserDataServices = handleUserDataServices;
-            this.difficultyService = difficultyService;
-            this.levelDataController = levelDataController;
-            this.winStreakController = winStreakController;
+            this.difficultyData        = difficultyData;
+            this.signalBus             = signalBus;
+            this.difficultyService     = difficultyService;
+            this.levelDataController   = levelDataController;
+            this.winStreakController   = winStreakController;
             this.gameSessionController = gameSessionController;
-            this.logger = loggerManager?.GetLogger(this);
+            this.logger                = loggerManager?.GetLogger(this);
 
             // Start session tracking
             this.RecordSessionStart();
@@ -290,7 +288,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
         {
             if (!this.dataCacheValid || this.cachedSessionData == null)
             {
-                this.cachedSessionData = new PlayerSessionData
+                this.cachedSessionData = new()
                 {
                     WinStreak         = this.GetWinStreak(),
                     LossStreak        = this.GetLossStreak(),
@@ -300,7 +298,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
                     LastPlayTime      = this.GetLastPlayTime(),
                     QuitType          = this.GetLastQuitType(),
                     SessionCount      = this.GetTotalWins() + this.GetTotalLosses(),
-                    RecentSessions    = new Queue<SessionInfo>(), // Empty queue for now
+                    RecentSessions    = new(), // Empty queue for now
                     DetailedSessions  = this.GetDetailedSessionHistory()
                 };
                 this.dataCacheValid = true;
@@ -311,7 +309,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
         /// <summary>
         /// Get detailed session history from GameSessionDataController
         /// </summary>
-        private System.Collections.Generic.List<DetailedSessionInfo> GetDetailedSessionHistory()
+        private List<DetailedSessionInfo> GetDetailedSessionHistory()
         {
             // Return the detailed session history from UITemplate
             if (this.gameSessionController != null)
@@ -319,9 +317,9 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
                 // We cannot directly access UITemplateGameSessionData as it's internal to UITemplate
                 // Return empty list for now - the game should implement its own detailed session tracking
                 // if it needs this advanced feature
-                return new List<DetailedSessionInfo>();
+                return new();
             }
-            return new List<DetailedSessionInfo>();
+            return new();
         }
 
         /// <summary>
@@ -342,20 +340,6 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
             }
 
             this.logger?.Info($"[UITemplateDifficultyController] Difficulty recalculated: {currentDifficulty:F1} -> {result.NewDifficulty:F1}");
-        }
-
-        /// <summary>
-        /// Clear difficulty-specific data (not data owned by other controllers)
-        /// </summary>
-        public void ClearData()
-        {
-            // Only clear data that belongs to this module
-            this.difficultyData.CurrentDifficulty = DifficultyConstants.DEFAULT_DIFFICULTY;
-            // Loss streak is managed by WinStreakController, not cleared here
-
-            // We don't clear any other data - it's all managed by UITemplate
-
-            this.InvalidateCache();
         }
 
         private void InvalidateCache()
