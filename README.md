@@ -46,12 +46,8 @@ public void StartLevel()
     // Get current difficulty (1-10 scale)
     float difficulty = difficultyAdapter.CurrentDifficulty;
 
-    // Get adjusted game parameters
-    var parameters = difficultyAdapter.GetAdjustedParameters();
-
-    // Use the parameters
-    timeLimit = parameters.TimeLimit;
-    hintsAvailable = parameters.HintsAvailable;
+    // Use the difficulty value to adjust your game parameters
+    ConfigureLevel(difficulty);
 }
 ```
 
@@ -87,21 +83,6 @@ The module automatically subscribes to UITemplate signals:
 - `ApplicationQuitSignal` - Records session end and quit type
 - `ApplicationPauseSignal` - Handles background/foreground transitions
 
-## 🔧 Game Parameters
-
-The adapter provides adjusted game parameters based on difficulty:
-
-```csharp
-public struct GameParameters
-{
-    public float TimeLimit;        // 120s (easy) -> 60s (hard)
-    public int HintsAvailable;     // 5 (easy) -> 1 (hard)
-    public float ScoreMultiplier;  // 1x (easy) -> 2x (hard)
-    public float EnemySpeed;       // 0.5x (easy) -> 1.5x (hard)
-    public float EnemyHealth;      // 50 (easy) -> 150 (hard)
-    public float PowerUpFrequency; // 1.5x (easy) -> 0.5x (hard)
-}
-```
 
 ## 📁 Project Structure
 
@@ -130,31 +111,31 @@ Editor/
 
 ### Get Current Difficulty
 ```csharp
+// Inject the adapter
+[Inject] private UITemplateDifficultyAdapter difficultyAdapter;
+
+// Get the current difficulty value (1.0 to 10.0)
 float difficulty = difficultyAdapter.CurrentDifficulty;
-DifficultyLevel level = difficultyAdapter.GetDifficultyLevel();
-```
 
-### Manual Recalculation
-```csharp
-// Force recalculation (normally automatic)
-difficultyAdapter.RecalculateDifficulty();
-```
-
-### Reset Difficulty
-```csharp
-// Reset to default (useful for new game)
-difficultyAdapter.ResetDifficulty();
-```
-
-### Custom Parameter Mapping
-```csharp
-// Get parameters and apply custom logic
-var parameters = difficultyAdapter.GetAdjustedParameters();
-
-// Apply to your game
-enemySpawner.SpawnRate = parameters.EnemySpeed;
-player.MaxHints = parameters.HintsAvailable;
-scoreManager.Multiplier = parameters.ScoreMultiplier;
+// Use it to adjust your game parameters
+if (difficulty > 7.0f)
+{
+    // Hard difficulty settings
+    enemySpeed = 2.0f;
+    timeLimit = 60f;
+}
+else if (difficulty > 4.0f)
+{
+    // Medium difficulty settings
+    enemySpeed = 1.5f;
+    timeLimit = 90f;
+}
+else
+{
+    // Easy difficulty settings
+    enemySpeed = 1.0f;
+    timeLimit = 120f;
+}
 ```
 
 ## 🔄 How It Works

@@ -6,12 +6,13 @@
         "UITemplate.Scripts",
         "UITemplate.LocalData",
         "UITemplate.Signal",
-        "UITemplate.Blueprint",
-        "VContainer",
-        "GameFoundation.Scripts",
+        "UITemplate.Enum",
+        "GameFoundation.DI",
         "GameFoundation.Signals",
-        "TheOne.Foundation",
-        "TheOne.Logging"
+        "GameFoundation.Utilities",
+        "TheOne.Logging",
+        "TheOne.Features.WinStreak.Core",
+        "GameFoundation.Models"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -19,9 +20,7 @@
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": true,
-    "defineConstraints": [
-        "GDK_VCONTAINER"
-    ],
+    "defineConstraints": [],
     "versionDefines": [],
     "noEngineReferences": false
 }

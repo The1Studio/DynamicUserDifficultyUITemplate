@@ -6,9 +6,10 @@
   "unity": "2021.3",
   "documentationUrl": "https://github.com/The1Studio/DynamicUserDifficultyUITemplate",
   "dependencies": {
-    "com.theone.dynamicuserdifficulty": "2.0.0",
+    "com.theone.dynamicuserdifficulty": "1.0.0",
     "jp.hadashikick.vcontainer": "1.16.9",
-    "com.unity.nuget.newtonsoft-json": "3.0.0"
+    "com.unity.nuget.newtonsoft-json": "3.0.2",
+    "com.theone.logging": "1.0.6"
   },
   "keywords": [
     "difficulty",
