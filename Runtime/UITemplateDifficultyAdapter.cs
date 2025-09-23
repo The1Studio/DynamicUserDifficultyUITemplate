@@ -25,7 +25,6 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration
         private readonly ILogger logger;
 
         private DateTime levelStartTime;
-        private int currentLevelId;
 
         [Preserve]
         public UITemplateDifficultyAdapter(
@@ -58,7 +57,6 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration
         private void OnLevelStarted(LevelStartedSignal signal)
         {
             this.levelStartTime = DateTime.Now;
-            this.currentLevelId = signal.Level;
 
             this.logger?.Info($"[UITemplateDifficultyAdapter] Level {signal.Level} started, Difficulty: {this.CurrentDifficulty:F1}");
         }

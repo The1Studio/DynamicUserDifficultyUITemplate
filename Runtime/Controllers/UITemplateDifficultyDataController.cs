@@ -13,6 +13,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
     using TheOneStudio.DynamicUserDifficulty.Providers;
     using TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.LocalData;
     using TheOneStudio.UITemplate.UITemplate.Models.Controllers;
+    using TheOneStudio.UITemplate.UITemplate.Models.LocalDatas;
     using TheOneStudio.UITemplate.UITemplate.Signals;
     using UnityEngine.Scripting;
 
@@ -311,15 +312,49 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
         /// </summary>
         private List<DetailedSessionInfo> GetDetailedSessionHistory()
         {
-            // Return the detailed session history from UITemplate
+            // Get type-safe raw session history from UITemplate and convert to DetailedSessionInfo
             if (this.gameSessionController != null)
             {
-                // We cannot directly access UITemplateGameSessionData as it's internal to UITemplate
-                // Return empty list for now - the game should implement its own detailed session tracking
-                // if it needs this advanced feature
-                return new();
+                var rawSessions = this.gameSessionController.GetDetailedSessionHistory();
+                var detailedSessions = new List<DetailedSessionInfo>();
+
+                foreach (var rawSession in rawSessions)
+                {
+                    // Convert type-safe RawSessionData to DetailedSessionInfo
+                    var sessionInfo = new DetailedSessionInfo
+                    {
+                        StartTime = rawSession.StartTime,
+                        EndTime = rawSession.EndTime,
+                        Duration = rawSession.Duration,
+                        LevelsCompleted = rawSession.LevelsCompleted,
+                        LevelsFailed = rawSession.LevelsFailed,
+                        LastLevelPlayed = rawSession.LastLevelPlayed,
+                        LastLevelWon = rawSession.LastLevelWon,
+                        StartDifficulty = rawSession.StartDifficulty,
+                        EndDifficulty = rawSession.EndDifficulty,
+
+                        // Let DynamicDifficultyService determine quit type from raw data
+                        QuitType = DetermineQuitTypeFromRawData(rawSession)
+                    };
+
+                    detailedSessions.Add(sessionInfo);
+                }
+
+                return detailedSessions;
             }
             return new();
+        }
+
+        /// <summary>
+        /// Determine quit type from type-safe raw session data using DynamicDifficultyService logic
+        /// </summary>
+        private QuitType DetermineQuitTypeFromRawData(RawSessionData rawSession)
+        {
+            // Use centralized quit type determination from DynamicDifficultyService
+            return DynamicDifficultyService.DetermineQuitType(
+                rawSession.Duration,
+                rawSession.LastLevelWon,
+                rawSession.LastLevelEndTime);
         }
 
         /// <summary>
