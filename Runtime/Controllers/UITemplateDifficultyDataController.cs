@@ -102,8 +102,8 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
         // Use existing WinStreakController for win streak data
         public int GetWinStreak() => this.winStreakController.Streak;
 
-        // Loss streak is our own data (not tracked elsewhere)
-        public int GetLossStreak() => this.difficultyData.LossStreak;
+        // Loss streak is tracked by WinStreakController
+        public int GetLossStreak() => this.winStreakController.LossStreak;
 
         // Use existing UITemplateLevelDataController for total wins/losses
         public int GetTotalWins() => this.levelDataController.TotalWin;
@@ -111,9 +111,8 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
 
         public void RecordWin()
         {
-            // Win streak is handled by WinStreakController (will be updated by signals)
-            // We only need to reset loss streak
-            this.difficultyData.LossStreak = 0;
+            // Both win streak and loss streak are handled by WinStreakController
+            // Loss streak will be reset automatically by WinStreakController
             this.InvalidateCache();
 
             // Recalculate difficulty
@@ -124,15 +123,14 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
 
         public void RecordLoss()
         {
-            // Increment our loss streak
-            this.difficultyData.LossStreak++;
-            // Win streak will be reset by WinStreakController automatically
+            // Both loss streak increment and win streak reset
+            // are handled automatically by WinStreakController
             this.InvalidateCache();
 
             // Recalculate difficulty
             this.RecalculateDifficulty();
 
-            this.logger?.Info($"[UITemplateDifficultyController] Loss recorded - Loss Streak: {this.difficultyData.LossStreak}");
+            this.logger?.Info($"[UITemplateDifficultyController] Loss recorded - Loss Streak: {this.GetLossStreak()}");
         }
 
         #endregion
@@ -353,7 +351,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
         {
             // Only clear data that belongs to this module
             this.difficultyData.CurrentDifficulty = DifficultyConstants.DEFAULT_DIFFICULTY;
-            this.difficultyData.LossStreak = 0;
+            // Loss streak is managed by WinStreakController, not cleared here
 
             // We don't clear any other data - it's all managed by UITemplate
 

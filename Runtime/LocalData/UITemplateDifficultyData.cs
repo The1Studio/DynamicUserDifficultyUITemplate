@@ -11,16 +11,13 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.LocalData
 
     /// <summary>
     /// Local data storage for Dynamic User Difficulty using UITemplate's data system.
-    /// ONLY stores the current difficulty value and loss streak - all other data comes from existing UITemplate/TheOne controllers.
+    /// ONLY stores the current difficulty value - all other data comes from existing UITemplate/TheOne controllers.
     /// </summary>
     [Preserve]
     public class UITemplateDifficultyData : ILocalData, IUITemplateLocalData
     {
         // Core difficulty value - this is the ONLY value we need to store
         [JsonProperty] [ShowInInspector] public float CurrentDifficulty { get; set; } = DifficultyConstants.DEFAULT_DIFFICULTY;
-
-        // Loss streak - not tracked by WinStreakController (only tracks wins)
-        [JsonProperty] [ShowInInspector] public int LossStreak { get; set; } = 0;
 
         public void Init()
         {
