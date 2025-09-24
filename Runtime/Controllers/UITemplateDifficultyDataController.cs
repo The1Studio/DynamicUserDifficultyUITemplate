@@ -1,17 +1,15 @@
 namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
 {
     using System;
-    using System.Collections.Generic;
     using GameFoundation.DI;
     using GameFoundation.Scripts.Utilities.ApplicationServices;
     using GameFoundation.Scripts.Utilities.UserData;
     using GameFoundation.Signals;
-    using TheOne.Features.WinStreak.Core.Controller;
     using TheOne.Logging;
     using TheOneStudio.DynamicUserDifficulty.Core;
     using TheOneStudio.DynamicUserDifficulty.Models;
-    using TheOneStudio.DynamicUserDifficulty.Providers;
     using TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.LocalData;
+    using Cysharp.Threading.Tasks;
     using TheOneStudio.UITemplate.UITemplate.Models.Controllers;
     using TheOneStudio.UITemplate.UITemplate.Models.LocalDatas;
     using TheOneStudio.UITemplate.UITemplate.Signals;
@@ -19,32 +17,20 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
 
     /// <summary>
     /// UITemplate controller for Dynamic User Difficulty data.
-    /// Implements all provider interfaces and manages difficulty state using UITemplate's data system.
-    /// Uses existing UITemplate/TheOne controllers for data that's already tracked.
-    /// All data is READ-ONLY from existing UITemplate/TheOne systems.
+    /// Manages difficulty state coordination and UI updates.
+    /// The actual provider logic is now in separate focused provider classes.
     /// </summary>
     [Preserve]
-    public class UITemplateDifficultyDataController : IUITemplateControllerData,
-        IDifficultyDataProvider,
-        IWinStreakProvider,
-        ITimeDecayProvider,
-        IRageQuitProvider,
-        ILevelProgressProvider,
-        ITickable
+    public class UITemplateDifficultyDataController : IUITemplateControllerData, ITickable
     {
         private readonly UITemplateDifficultyData  difficultyData;
         private readonly SignalBus                 signalBus;
         private readonly IDynamicDifficultyService difficultyService;
+        private readonly IHandleUserDataServices   handleUserDataServices;
+        private readonly ILogger                   logger;
 
-        // Existing controllers for data we don't duplicate
-        private readonly UITemplateLevelDataController levelDataController;
-        private readonly WinStreakLocalDataController winStreakController;
-        private readonly UITemplateGameSessionDataController gameSessionController;
-
-        private readonly ILogger logger;
-
-        private PlayerSessionData cachedSessionData;
-        private bool dataCacheValid;
+        // Track time for ITickable
+        private float sessionTime;
 
         [Preserve]
         public UITemplateDifficultyDataController(
@@ -52,434 +38,44 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
             SignalBus signalBus,
             IHandleUserDataServices handleUserDataServices,
             IDynamicDifficultyService difficultyService,
-            UITemplateLevelDataController levelDataController,
-            WinStreakLocalDataController winStreakController,
-            UITemplateGameSessionDataController gameSessionController,
             ILoggerManager loggerManager)
         {
             this.difficultyData        = difficultyData;
             this.signalBus             = signalBus;
+            this.handleUserDataServices = handleUserDataServices;
             this.difficultyService     = difficultyService;
-            this.levelDataController   = levelDataController;
-            this.winStreakController   = winStreakController;
-            this.gameSessionController = gameSessionController;
             this.logger                = loggerManager?.GetLogger(this);
 
-            // Initialize difficulty for new players using service default
+            // Initialize difficulty for new players
             if (this.difficultyData.CurrentDifficulty <= 0)
             {
                 var defaultDifficulty = this.difficultyService.GetDefaultDifficulty();
-                this.SetCurrentDifficulty(defaultDifficulty);
+                this.difficultyData.CurrentDifficulty = defaultDifficulty;
                 this.logger?.Info($"[UITemplateDifficultyController] New player initialized with default difficulty: {defaultDifficulty:F1}");
             }
-
-            // Start session tracking
-            this.RecordSessionStart();
 
             // Subscribe to application lifecycle events
             this.signalBus.Subscribe<ApplicationQuitSignal>(this.OnApplicationQuit);
             this.signalBus.Subscribe<ApplicationPauseSignal>(this.OnApplicationPause);
 
-            // Subscribe to level events
-            this.signalBus.Subscribe<LevelEndedSignal>(this.OnLevelEnded);
+            // Subscribe to game signals for difficulty updates
             this.signalBus.Subscribe<LevelStartedSignal>(this.OnLevelStarted);
+            this.signalBus.Subscribe<LevelEndedSignal>(this.OnLevelEnded);
+
+            this.logger?.Info($"[UITemplateDifficultyController] Controller initialized. Current difficulty: {this.difficultyData.CurrentDifficulty:F1}");
         }
 
-        #region IDifficultyDataProvider Implementation
-
-        public float GetCurrentDifficulty()
-        {
-            return this.difficultyData.CurrentDifficulty;
-        }
-
-        public void SetCurrentDifficulty(float difficulty)
-        {
-            // Use service validation and clamping instead of manual implementation
-            if (!this.difficultyService.IsValidDifficulty(difficulty))
-            {
-                this.logger?.Warning($"[UITemplateDifficultyController] Invalid difficulty {difficulty:F1}, clamping to valid range");
-            }
-
-            var clampedDifficulty = this.difficultyService.ClampDifficulty(difficulty);
-            this.difficultyData.CurrentDifficulty = clampedDifficulty;
-
-            this.logger?.Info($"[UITemplateDifficultyController] Difficulty set to: {clampedDifficulty:F1}");
-        }
-
-        #endregion
-
-        #region IWinStreakProvider Implementation
-
-        // Use existing WinStreakController for win streak data
-        public int GetWinStreak() => this.winStreakController.Streak;
-
-        // Loss streak is tracked by WinStreakController
-        public int GetLossStreak() => this.winStreakController.LossStreak;
-
-        // Use existing UITemplateLevelDataController for total wins/losses
-        public int GetTotalWins() => this.levelDataController.TotalWin;
-        public int GetTotalLosses() => this.levelDataController.TotalLose;
-
-        public void RecordWin()
-        {
-            // Both win streak and loss streak are handled by WinStreakController
-            // Loss streak will be reset automatically by WinStreakController
-            this.InvalidateCache();
-
-            // Recalculate difficulty
-            this.RecalculateDifficulty();
-
-            this.logger?.Info($"[UITemplateDifficultyController] Win recorded - Win Streak: {this.GetWinStreak()}");
-        }
-
-        public void RecordLoss()
-        {
-            // Both loss streak increment and win streak reset
-            // are handled automatically by WinStreakController
-            this.InvalidateCache();
-
-            // Recalculate difficulty
-            this.RecalculateDifficulty();
-
-            this.logger?.Info($"[UITemplateDifficultyController] Loss recorded - Loss Streak: {this.GetLossStreak()}");
-        }
-
-        #endregion
-
-        #region ITimeDecayProvider Implementation
-
-        public DateTime GetLastPlayTime()
-        {
-            // Check if we have LoseTime data first
-            var currentLevelData = this.levelDataController.GetCurrentLevelData;
-            if (currentLevelData.LoseTime != null && currentLevelData.LoseTime.Count > 0)
-            {
-                // Get the most recent lose time (last element in the list)
-                var lastLoseTimeUnix = currentLevelData.LoseTime[currentLevelData.LoseTime.Count - 1];
-                return DateTimeOffset.FromUnixTimeSeconds(lastLoseTimeUnix).DateTime;
-            }
-
-            // Fallback to last level end time
-            return this.gameSessionController.LastLevelEndTime;
-        }
-
-        public TimeSpan GetTimeSinceLastPlay()
-        {
-            return DateTime.Now - this.GetLastPlayTime();
-        }
-
-        public void RecordPlaySession()
-        {
-            // Do nothing - UITemplate manages session tracking
-            // This is just for interface compliance
-        }
-
-        public int GetDaysAwayFromGame() => Math.Max(0, (int)this.GetTimeSinceLastPlay().TotalDays);
-
-        #endregion
-
-        #region IRageQuitProvider Implementation
-
-        public QuitType GetLastQuitType()
-        {
-            // Use centralized utility method from DynamicDifficultyService
-            var lastDuration = this.gameSessionController.LastSessionDuration;
-            var wasLastLevelWon = this.gameSessionController.WasLastLevelWon;
-            var lastLevelEndTime = this.gameSessionController.LastLevelEndTime;
-
-            return this.difficultyService.DetermineQuitType(lastDuration, wasLastLevelWon, lastLevelEndTime);
-        }
-
-        public float GetAverageSessionDuration()
-        {
-            // Now we have session history in GameSessionDataController
-            return this.gameSessionController.GetAverageSessionDuration();
-        }
-
-        public void RecordSessionEnd(QuitType quitType, float durationSeconds)
-        {
-            // Record the ending difficulty for the session
-            this.UpdateSessionDifficultyData(isStartDifficulty: false);
-
-            // UITemplate manages session tracking - this is just for interface compliance
-            this.logger?.Info($"[UITemplateDifficultyController] Session ended: {quitType}, Duration: {durationSeconds:F1}s");
-        }
-
-        public float GetCurrentSessionDuration()
-        {
-            // Always calculate from UITemplate's session data
-            return (float)(DateTime.Now - this.gameSessionController.SessionStartTime).TotalSeconds;
-        }
-
-        public int GetRecentRageQuitCount()
-        {
-            // Check if the last quit was a rage quit
-            // UITemplate doesn't track rage quit history, only last quit
-            return this.GetLastQuitType() == QuitType.RageQuit ? 1 : 0;
-        }
-
-        public void RecordSessionStart()
-        {
-            this.RecordPlaySession();
-            // Record the starting difficulty for the session
-            this.UpdateSessionDifficultyData(isStartDifficulty: true);
-        }
-
-        #endregion
-
-        #region ILevelProgressProvider Implementation
-
-        public int GetCurrentLevel()
-        {
-            // Use UITemplate's level controller
-            return this.levelDataController.CurrentLevel;
-        }
-
-        public float GetAverageCompletionTime()
-        {
-            // Get from UITemplateLevelDataController which calculates from all levels with WinTime > 0
-            return this.levelDataController.GetAverageCompletionTime();
-        }
-
-        public int GetAttemptsOnCurrentLevel()
-        {
-            // Get from UITemplateLevelDataController: LoseCount + 1
-            return this.levelDataController.GetAttemptsOnCurrentLevel();
-        }
-
-        public float GetCompletionRate()
-        {
-            var totalAttempts = this.GetTotalWins() + this.GetTotalLosses();
-            if (totalAttempts == 0) return 1.0f;
-            return (float)this.GetTotalWins() / totalAttempts;
-        }
-
-        public void RecordLevelCompletion(int levelId, float completionTime, bool won)
-        {
-            // We don't store level completion data - UITemplate handles that
-            // Just trigger win/loss recording for difficulty calculation
-            if (won)
-            {
-                this.RecordWin();
-            }
-            else
-            {
-                this.RecordLoss();
-            }
-        }
-
-        public float GetCurrentLevelDifficulty()
-        {
-            // Get the static level difficulty from LevelData
-            var currentLevelData = this.levelDataController.GetCurrentLevelData;
-
-            // Convert enum to float value (Easy=1, Normal=2, Hard=3, VeryHard=4)
-            var staticDifficulty = (float)(currentLevelData.StaticDifficulty + 1);
-
-            // Also check if there's a DynamicDifficulty value set
-            if (currentLevelData.DynamicDifficulty > 0)
-            {
-                return currentLevelData.DynamicDifficulty;
-            }
-
-            return staticDifficulty;
-        }
+        #region Public Properties
 
         /// <summary>
-        /// Gets the average percent time to complete from UITemplate level data
+        /// Gets the current difficulty value.
         /// </summary>
-        public float GetCompletionTimePercentage()
-        {
-            // Get from UITemplateLevelDataController which calculates from all levels with PercentUsingTimeToComplete > 0
-            return this.levelDataController.GetAveragePercentTimeToComplete();
-        }
-
-        #endregion
-
-        #region Preview and Analysis Methods
+        public float CurrentDifficulty => this.difficultyData.CurrentDifficulty;
 
         /// <summary>
-        /// Preview what difficulty would be after a potential win/loss scenario.
-        /// Uses the service's CalculateAdjustment method for what-if analysis.
+        /// Gets the session time in seconds.
         /// </summary>
-        /// <param name="isWin">Whether the scenario is a win or loss</param>
-        /// <param name="currentWinStreak">Override current win streak (-1 to use actual)</param>
-        /// <param name="currentLossStreak">Override current loss streak (-1 to use actual)</param>
-        /// <returns>Predicted difficulty after the scenario</returns>
-        public float PreviewDifficultyChange(bool isWin, int currentWinStreak = -1, int currentLossStreak = -1)
-        {
-            var winStreak = currentWinStreak >= 0 ? currentWinStreak : this.GetWinStreak();
-            var lossStreak = currentLossStreak >= 0 ? currentLossStreak : this.GetLossStreak();
-
-            // Simulate the outcome
-            if (isWin)
-            {
-                winStreak++;
-                lossStreak = 0;
-            }
-            else
-            {
-                lossStreak++;
-                winStreak = 0;
-            }
-
-            // Use service's CalculateAdjustment for what-if analysis
-            var adjustment = this.difficultyService.CalculateAdjustment(
-                this.GetCurrentDifficulty(),
-                winStreak,
-                lossStreak,
-                (float)this.GetTimeSinceLastPlay().TotalHours,
-                this.GetLastQuitType());
-
-            var predictedDifficulty = this.GetCurrentDifficulty() + adjustment;
-
-            this.logger?.Info($"[UITemplateDifficultyController] Preview: {(isWin ? "Win" : "Loss")} would change difficulty from {this.GetCurrentDifficulty():F1} to {predictedDifficulty:F1} (adjustment: {adjustment:F1})");
-
-            return this.difficultyService.ClampDifficulty(predictedDifficulty);
-        }
-
-        #endregion
-
-        #region Helper Methods
-
-        /// <summary>
-        /// Get session data for difficulty calculation
-        /// </summary>
-        public PlayerSessionData GetSessionData()
-        {
-            if (!this.dataCacheValid || this.cachedSessionData == null)
-            {
-                this.cachedSessionData = new()
-                {
-                    WinStreak         = this.GetWinStreak(),
-                    LossStreak        = this.GetLossStreak(),
-                    TotalWins         = this.GetTotalWins(),
-                    TotalLosses       = this.GetTotalLosses(),
-                    CurrentDifficulty = this.GetCurrentDifficulty(),
-                    LastPlayTime      = this.GetLastPlayTime(),
-                    QuitType          = this.GetLastQuitType(),
-                    SessionCount      = this.GetTotalWins() + this.GetTotalLosses(),
-                    RecentSessions    = new(), // Empty queue for now
-                    DetailedSessions  = this.GetDetailedSessionHistory()
-                };
-                this.dataCacheValid = true;
-            }
-            return this.cachedSessionData;
-        }
-
-        /// <summary>
-        /// Get detailed session history from GameSessionDataController
-        /// </summary>
-        private List<DetailedSessionInfo> GetDetailedSessionHistory()
-        {
-            // Get type-safe raw session history from UITemplate and convert to DetailedSessionInfo
-            if (this.gameSessionController != null)
-            {
-                var rawSessions = this.gameSessionController.GetDetailedSessionHistory();
-                var detailedSessions = new List<DetailedSessionInfo>();
-
-                foreach (var rawSession in rawSessions)
-                {
-                    // Convert type-safe RawSessionData to DetailedSessionInfo
-                    var sessionInfo = new DetailedSessionInfo
-                    {
-                        StartTime = rawSession.StartTime,
-                        EndTime = rawSession.EndTime,
-                        Duration = rawSession.Duration,
-                        LevelsCompleted = rawSession.LevelsCompleted,
-                        LevelsFailed = rawSession.LevelsFailed,
-                        LastLevelPlayed = rawSession.LastLevelPlayed,
-                        LastLevelWon = rawSession.LastLevelWon,
-                        StartDifficulty = rawSession.StartDifficulty,
-                        EndDifficulty = rawSession.EndDifficulty,
-
-                        // Let DynamicDifficultyService determine quit type from raw data
-                        EndReason = this.ConvertQuitTypeToSessionEndReason(this.DetermineQuitTypeFromRawData(rawSession)),
-                    };
-
-                    detailedSessions.Add(sessionInfo);
-                }
-
-                return detailedSessions;
-            }
-            return new();
-        }
-
-        /// <summary>
-        /// Determine quit type from type-safe raw session data using injected service
-        /// </summary>
-        private QuitType DetermineQuitTypeFromRawData(RawSessionData rawSession)
-        {
-            // Use injected service instead of static method
-            return this.difficultyService.DetermineQuitType(
-                rawSession.Duration,
-                rawSession.LastLevelWon,
-                rawSession.LastLevelEndTime);
-        }
-
-        /// <summary>
-        /// Convert QuitType to SessionEndReason for DetailedSessionInfo
-        /// </summary>
-        private SessionEndReason ConvertQuitTypeToSessionEndReason(QuitType quitType)
-        {
-            return quitType switch
-            {
-                QuitType.Normal => SessionEndReason.Normal,
-                QuitType.RageQuit => SessionEndReason.RageQuit,
-                QuitType.MidPlay => SessionEndReason.QuitMidLevel,
-                _ => SessionEndReason.Unknown
-            };
-        }
-
-        /// <summary>
-        /// Recalculate difficulty based on current session data
-        /// </summary>
-        public void RecalculateDifficulty()
-        {
-            var currentDifficulty = this.GetCurrentDifficulty();
-            var sessionData = this.GetSessionData();
-
-            // Calculate new difficulty using stateless service
-            var result = this.difficultyService.CalculateDifficulty(currentDifficulty, sessionData);
-
-            // Store the new difficulty if it changed
-            if (Math.Abs(result.NewDifficulty - currentDifficulty) > 0.01f)
-            {
-                this.SetCurrentDifficulty(result.NewDifficulty);
-            }
-
-            this.logger?.Info($"[UITemplateDifficultyController] Difficulty recalculated: {currentDifficulty:F1} -> {result.NewDifficulty:F1}");
-        }
-
-        private void InvalidateCache()
-        {
-            this.dataCacheValid = false;
-            this.cachedSessionData = null;
-        }
-
-        /// <summary>
-        /// Update the most recent session data with current difficulty value
-        /// </summary>
-        private void UpdateSessionDifficultyData(bool isStartDifficulty)
-        {
-            var sessionHistory = this.gameSessionController.GetDetailedSessionHistory();
-            if (sessionHistory != null && sessionHistory.Count > 0)
-            {
-                var currentSession = sessionHistory[sessionHistory.Count - 1];
-                var currentDifficulty = this.GetCurrentDifficulty();
-
-                if (isStartDifficulty)
-                {
-                    currentSession.StartDifficulty = currentDifficulty;
-                    this.logger?.Info($"[UITemplateDifficultyController] Session StartDifficulty set to: {currentDifficulty:F1}");
-                }
-                else
-                {
-                    currentSession.EndDifficulty = currentDifficulty;
-                    this.logger?.Info($"[UITemplateDifficultyController] Session EndDifficulty set to: {currentDifficulty:F1}");
-                }
-            }
-        }
+        public float SessionTime => this.sessionTime;
 
         #endregion
 
@@ -487,54 +83,175 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
 
         public void Tick()
         {
-            // Could be used for periodic difficulty adjustments or time-based decay
-            // Currently not needed for basic implementation
+            this.sessionTime += UnityEngine.Time.deltaTime;
         }
 
         #endregion
 
         #region Signal Handlers
 
+        private void OnLevelStarted(LevelStartedSignal signal)
+        {
+            // Log level start with current difficulty
+            this.logger?.Info($"[UITemplateDifficultyController] Level {signal.Level} started with difficulty: {this.CurrentDifficulty:F1}");
+        }
+
+        private void OnLevelEnded(LevelEndedSignal signal)
+        {
+            // Recalculate difficulty after level ends
+            // Create session data for the calculation
+            var sessionData = new PlayerSessionData
+            {
+                WinStreak = 0,  // Will be provided by providers
+                LossStreak = 0, // Will be provided by providers
+                TimeSinceLastPlay = 0, // Will be provided by providers
+                IsReturningPlayer = true
+            };
+            
+            var result = this.difficultyService.CalculateDifficulty(this.difficultyData.CurrentDifficulty, sessionData);
+
+            if (result != null && Math.Abs(result.NewDifficulty - this.difficultyData.CurrentDifficulty) > 0.01f)
+            {
+                var oldDifficulty = this.difficultyData.CurrentDifficulty;
+                this.difficultyData.CurrentDifficulty = result.NewDifficulty;
+
+                // Save the updated difficulty
+                this.handleUserDataServices.SaveAll();
+
+                this.logger?.Info($"[UITemplateDifficultyController] Difficulty adjusted: {oldDifficulty:F1} -> {result.NewDifficulty:F1} " +
+                    $"(Change: {result.TotalAdjustment:+0.##;-0.##})");
+
+                // Fire a signal for UI updates if needed
+                this.signalBus.Fire(new DifficultyChangedSignal(oldDifficulty, result.NewDifficulty));
+            }
+
+            var levelResult = signal.IsWin ? "Won" : "Lost";
+            this.logger?.Info($"[UITemplateDifficultyController] Level {signal.Level} {levelResult}. Current difficulty: {this.CurrentDifficulty:F1}");
+        }
+
         private void OnApplicationQuit(ApplicationQuitSignal signal)
         {
-            // Record session end when app quits
-            var sessionDuration = this.GetCurrentSessionDuration();
-            var quitType = this.GetLastQuitType();
-            this.RecordSessionEnd(quitType, sessionDuration);
+            // Save difficulty data on quit
+            this.handleUserDataServices.SaveAll();
+            this.logger?.Info($"[UITemplateDifficultyController] Application quit. Final difficulty: {this.CurrentDifficulty:F1}");
         }
 
         private void OnApplicationPause(ApplicationPauseSignal signal)
         {
             if (signal.PauseStatus)
             {
-                // App going to background - record session end
-                var sessionDuration = this.GetCurrentSessionDuration();
-                var quitType = this.GetLastQuitType();
-                this.RecordSessionEnd(quitType, sessionDuration);
+                // Save data when app goes to background
+                this.handleUserDataServices.SaveAll();
+                this.logger?.Info($"[UITemplateDifficultyController] Application paused. Difficulty saved: {this.CurrentDifficulty:F1}");
             }
-            else
-            {
-                // App returning from background - start new session
-                this.RecordSessionStart();
-            }
-        }
-
-        private void OnLevelStarted(LevelStartedSignal signal)
-        {
-            // Track when a new level starts - helps with attempt counting
-            this.logger?.Info($"[UITemplateDifficultyController] Level {signal.Level} started");
-        }
-
-        private void OnLevelEnded(LevelEndedSignal signal)
-        {
-            // Just trigger win/loss recording for difficulty calculation
-            // UITemplate already tracks all the level data
-            this.RecordLevelCompletion(signal.Level, 0, signal.IsWin);
-
-            var percentage = this.GetCompletionTimePercentage();
-            this.logger?.Info($"[UITemplateDifficultyController] Level {signal.Level} ended - Win: {signal.IsWin}, Average completion: {percentage:F0}%");
         }
 
         #endregion
+
+        #region Public Methods
+
+        /// <summary>
+        /// Manually triggers difficulty recalculation.
+        /// </summary>
+        /// <summary>
+        /// Manually triggers difficulty recalculation.
+        /// </summary>
+        public void RecalculateDifficulty()
+        {
+            // Create session data for the calculation
+            var sessionData = new PlayerSessionData
+            {
+                WinStreak = 0,  // Will be provided by providers
+                LossStreak = 0, // Will be provided by providers
+                TimeSinceLastPlay = 0, // Will be provided by providers
+                IsReturningPlayer = true
+            };
+            
+            var result = this.difficultyService.CalculateDifficulty(this.difficultyData.CurrentDifficulty, sessionData);
+
+            if (result != null && Math.Abs(result.NewDifficulty - this.difficultyData.CurrentDifficulty) > 0.01f)
+            {
+                var oldDifficulty = this.difficultyData.CurrentDifficulty;
+                this.difficultyData.CurrentDifficulty = result.NewDifficulty;
+
+                // Save the updated difficulty
+                this.handleUserDataServices.SaveAll();
+
+                this.logger?.Info($"[UITemplateDifficultyController] Manual recalculation: {oldDifficulty:F1} -> {result.NewDifficulty:F1}");
+
+                // Fire a signal for UI updates
+                this.signalBus.Fire(new DifficultyChangedSignal(oldDifficulty, result.NewDifficulty));
+            }
+        }
+
+        /// <summary>
+        /// Gets a preview of what the difficulty would be with current conditions.
+        /// </summary>
+        /// <summary>
+        /// Gets a preview of what the difficulty would be with current conditions.
+        /// </summary>
+        public float PreviewDifficulty()
+        {
+            // Create session data for the calculation
+            var sessionData = new PlayerSessionData
+            {
+                WinStreak = 0,  // Will be provided by providers
+                LossStreak = 0, // Will be provided by providers
+                TimeSinceLastPlay = 0, // Will be provided by providers
+                IsReturningPlayer = true
+            };
+            
+            var result = this.difficultyService.CalculateDifficulty(this.difficultyData.CurrentDifficulty, sessionData);
+            return result?.NewDifficulty ?? this.CurrentDifficulty;
+        }
+
+        /// <summary>
+        /// Resets difficulty to default value.
+        /// </summary>
+        public void ResetDifficulty()
+        {
+            var defaultDifficulty = this.difficultyService.GetDefaultDifficulty();
+            var oldDifficulty = this.difficultyData.CurrentDifficulty;
+
+            this.difficultyData.CurrentDifficulty = defaultDifficulty;
+            this.handleUserDataServices.SaveAll();
+
+            this.logger?.Info($"[UITemplateDifficultyController] Difficulty reset: {oldDifficulty:F1} -> {defaultDifficulty:F1}");
+
+            // Fire a signal for UI updates
+            this.signalBus.Fire(new DifficultyChangedSignal(oldDifficulty, defaultDifficulty));
+        }
+
+        #endregion
+
+        #region Cleanup
+
+        public void Dispose()
+        {
+            // Unsubscribe from signals
+            this.signalBus.Unsubscribe<ApplicationQuitSignal>(this.OnApplicationQuit);
+            this.signalBus.Unsubscribe<ApplicationPauseSignal>(this.OnApplicationPause);
+            this.signalBus.Unsubscribe<LevelStartedSignal>(this.OnLevelStarted);
+            this.signalBus.Unsubscribe<LevelEndedSignal>(this.OnLevelEnded);
+
+            this.logger?.Info("[UITemplateDifficultyController] Controller disposed");
+        }
+
+        #endregion
+    }
+
+    /// <summary>
+    /// Signal fired when difficulty changes.
+    /// </summary>
+    public class DifficultyChangedSignal
+    {
+        public float OldDifficulty { get; }
+        public float NewDifficulty { get; }
+
+        public DifficultyChangedSignal(float oldDifficulty, float newDifficulty)
+        {
+            this.OldDifficulty = oldDifficulty;
+            this.NewDifficulty = newDifficulty;
+        }
     }
 }

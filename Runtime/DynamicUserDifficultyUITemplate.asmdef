@@ -13,7 +13,8 @@
         "TheOne.Logging",
         "TheOne.Features.WinStreak.Core",
         "GameFoundation.Models",
-        "VContainer"
+        "VContainer",
+        "UniTask"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
