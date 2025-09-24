@@ -65,6 +65,14 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
             this.gameSessionController = gameSessionController;
             this.logger                = loggerManager?.GetLogger(this);
 
+            // Initialize difficulty for new players using service default
+            if (this.difficultyData.CurrentDifficulty <= 0)
+            {
+                var defaultDifficulty = this.difficultyService.GetDefaultDifficulty();
+                this.SetCurrentDifficulty(defaultDifficulty);
+                this.logger?.Info($"[UITemplateDifficultyController] New player initialized with default difficulty: {defaultDifficulty:F1}");
+            }
+
             // Start session tracking
             this.RecordSessionStart();
 
@@ -86,9 +94,13 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
 
         public void SetCurrentDifficulty(float difficulty)
         {
-            var clampedDifficulty = Math.Max(DifficultyConstants.MIN_DIFFICULTY,
-                                            Math.Min(DifficultyConstants.MAX_DIFFICULTY, difficulty));
+            // Use service validation and clamping instead of manual implementation
+            if (!this.difficultyService.IsValidDifficulty(difficulty))
+            {
+                this.logger?.Warning($"[UITemplateDifficultyController] Invalid difficulty {difficulty:F1}, clamping to valid range");
+            }
 
+            var clampedDifficulty = this.difficultyService.ClampDifficulty(difficulty);
             this.difficultyData.CurrentDifficulty = clampedDifficulty;
 
             this.logger?.Info($"[UITemplateDifficultyController] Difficulty set to: {clampedDifficulty:F1}");
@@ -175,7 +187,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
             var wasLastLevelWon = this.gameSessionController.WasLastLevelWon;
             var lastLevelEndTime = this.gameSessionController.LastLevelEndTime;
 
-            return DynamicDifficultyService.DetermineQuitType(lastDuration, wasLastLevelWon, lastLevelEndTime);
+            return this.difficultyService.DetermineQuitType(lastDuration, wasLastLevelWon, lastLevelEndTime);
         }
 
         public float GetAverageSessionDuration()
@@ -186,8 +198,10 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
 
         public void RecordSessionEnd(QuitType quitType, float durationSeconds)
         {
-            // Do nothing - UITemplate manages session tracking
-            // This is just for interface compliance
+            // Record the ending difficulty for the session
+            this.UpdateSessionDifficultyData(isStartDifficulty: false);
+
+            // UITemplate manages session tracking - this is just for interface compliance
             this.logger?.Info($"[UITemplateDifficultyController] Session ended: {quitType}, Duration: {durationSeconds:F1}s");
         }
 
@@ -207,6 +221,8 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
         public void RecordSessionStart()
         {
             this.RecordPlaySession();
+            // Record the starting difficulty for the session
+            this.UpdateSessionDifficultyData(isStartDifficulty: true);
         }
 
         #endregion
@@ -280,6 +296,50 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
 
         #endregion
 
+        #region Preview and Analysis Methods
+
+        /// <summary>
+        /// Preview what difficulty would be after a potential win/loss scenario.
+        /// Uses the service's CalculateAdjustment method for what-if analysis.
+        /// </summary>
+        /// <param name="isWin">Whether the scenario is a win or loss</param>
+        /// <param name="currentWinStreak">Override current win streak (-1 to use actual)</param>
+        /// <param name="currentLossStreak">Override current loss streak (-1 to use actual)</param>
+        /// <returns>Predicted difficulty after the scenario</returns>
+        public float PreviewDifficultyChange(bool isWin, int currentWinStreak = -1, int currentLossStreak = -1)
+        {
+            var winStreak = currentWinStreak >= 0 ? currentWinStreak : this.GetWinStreak();
+            var lossStreak = currentLossStreak >= 0 ? currentLossStreak : this.GetLossStreak();
+
+            // Simulate the outcome
+            if (isWin)
+            {
+                winStreak++;
+                lossStreak = 0;
+            }
+            else
+            {
+                lossStreak++;
+                winStreak = 0;
+            }
+
+            // Use service's CalculateAdjustment for what-if analysis
+            var adjustment = this.difficultyService.CalculateAdjustment(
+                this.GetCurrentDifficulty(),
+                winStreak,
+                lossStreak,
+                (float)this.GetTimeSinceLastPlay().TotalHours,
+                this.GetLastQuitType());
+
+            var predictedDifficulty = this.GetCurrentDifficulty() + adjustment;
+
+            this.logger?.Info($"[UITemplateDifficultyController] Preview: {(isWin ? "Win" : "Loss")} would change difficulty from {this.GetCurrentDifficulty():F1} to {predictedDifficulty:F1} (adjustment: {adjustment:F1})");
+
+            return this.difficultyService.ClampDifficulty(predictedDifficulty);
+        }
+
+        #endregion
+
         #region Helper Methods
 
         /// <summary>
@@ -334,7 +394,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
                         EndDifficulty = rawSession.EndDifficulty,
 
                         // Let DynamicDifficultyService determine quit type from raw data
-                        QuitType = DetermineQuitTypeFromRawData(rawSession)
+                        EndReason = this.ConvertQuitTypeToSessionEndReason(this.DetermineQuitTypeFromRawData(rawSession)),
                     };
 
                     detailedSessions.Add(sessionInfo);
@@ -346,15 +406,29 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
         }
 
         /// <summary>
-        /// Determine quit type from type-safe raw session data using DynamicDifficultyService logic
+        /// Determine quit type from type-safe raw session data using injected service
         /// </summary>
         private QuitType DetermineQuitTypeFromRawData(RawSessionData rawSession)
         {
-            // Use centralized quit type determination from DynamicDifficultyService
-            return DynamicDifficultyService.DetermineQuitType(
+            // Use injected service instead of static method
+            return this.difficultyService.DetermineQuitType(
                 rawSession.Duration,
                 rawSession.LastLevelWon,
                 rawSession.LastLevelEndTime);
+        }
+
+        /// <summary>
+        /// Convert QuitType to SessionEndReason for DetailedSessionInfo
+        /// </summary>
+        private SessionEndReason ConvertQuitTypeToSessionEndReason(QuitType quitType)
+        {
+            return quitType switch
+            {
+                QuitType.Normal => SessionEndReason.Normal,
+                QuitType.RageQuit => SessionEndReason.RageQuit,
+                QuitType.MidPlay => SessionEndReason.QuitMidLevel,
+                _ => SessionEndReason.Unknown
+            };
         }
 
         /// <summary>
@@ -381,6 +455,30 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
         {
             this.dataCacheValid = false;
             this.cachedSessionData = null;
+        }
+
+        /// <summary>
+        /// Update the most recent session data with current difficulty value
+        /// </summary>
+        private void UpdateSessionDifficultyData(bool isStartDifficulty)
+        {
+            var sessionHistory = this.gameSessionController.GetDetailedSessionHistory();
+            if (sessionHistory != null && sessionHistory.Count > 0)
+            {
+                var currentSession = sessionHistory[sessionHistory.Count - 1];
+                var currentDifficulty = this.GetCurrentDifficulty();
+
+                if (isStartDifficulty)
+                {
+                    currentSession.StartDifficulty = currentDifficulty;
+                    this.logger?.Info($"[UITemplateDifficultyController] Session StartDifficulty set to: {currentDifficulty:F1}");
+                }
+                else
+                {
+                    currentSession.EndDifficulty = currentDifficulty;
+                    this.logger?.Info($"[UITemplateDifficultyController] Session EndDifficulty set to: {currentDifficulty:F1}");
+                }
+            }
         }
 
         #endregion

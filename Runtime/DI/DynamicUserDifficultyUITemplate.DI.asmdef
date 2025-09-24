@@ -6,8 +6,9 @@
         "DynamicUserDifficulty.VContainer",
         "DynamicUserDifficultyUITemplate",
         "VContainer",
-        "VContainer.Unity",
-        "GameFoundation.DI"
+        "GameFoundation.DI",
+        "TheOne.Extensions",
+        "TheOne.Logging"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -15,9 +16,7 @@
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": true,
-    "defineConstraints": [
-        "GDK_VCONTAINER"
-    ],
+    "defineConstraints": [],
     "versionDefines": [],
     "noEngineReferences": false
 }

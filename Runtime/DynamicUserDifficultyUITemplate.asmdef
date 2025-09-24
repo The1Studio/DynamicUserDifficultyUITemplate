@@ -12,7 +12,8 @@
         "GameFoundation.Utilities",
         "TheOne.Logging",
         "TheOne.Features.WinStreak.Core",
-        "GameFoundation.Models"
+        "GameFoundation.Models",
+        "VContainer"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
