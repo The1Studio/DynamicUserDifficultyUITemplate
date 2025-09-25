@@ -1,12 +1,10 @@
 namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
 {
     using System;
-    using System.Collections.Generic;
     using System.Linq;
+    using TheOne.Features.WinStreak.Core.Controller;
     using TheOneStudio.DynamicUserDifficulty.Providers;
     using TheOneStudio.UITemplate.UITemplate.Models.Controllers;
-    using WinStreak.Core.Controllers;
-    using UnityEngine;
     using UnityEngine.Scripting;
 
     /// <summary>

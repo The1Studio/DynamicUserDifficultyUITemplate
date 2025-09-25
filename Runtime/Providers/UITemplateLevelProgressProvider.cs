@@ -1,9 +1,7 @@
 namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
 {
     using System;
-    using System.Collections.Generic;
     using System.Linq;
-    using TheOneStudio.DynamicUserDifficulty.Models;
     using TheOneStudio.DynamicUserDifficulty.Providers;
     using global::UITemplate.Scripts.Enum;
     using TheOneStudio.UITemplate.UITemplate.Models;
@@ -81,7 +79,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
                     LevelDifficulty.Normal => 5f,
                     LevelDifficulty.Hard => 8f,
                     LevelDifficulty.VeryHard => 10f,
-                    _ => 3f
+                    _ => 3f,
                 };
             }
             catch (Exception ex)

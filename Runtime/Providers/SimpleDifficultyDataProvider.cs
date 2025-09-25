@@ -1,9 +1,8 @@
 namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
 {
-    using TheOneStudio.DynamicUserDifficulty.Core;
+    using TheOne.Logging;
     using TheOneStudio.DynamicUserDifficulty.Providers;
     using TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.LocalData;
-    using TheOne.Logging;
 
     /// <summary>
     /// Simple implementation of IDifficultyDataProvider that only handles difficulty storage.
@@ -16,10 +15,10 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
 
         public SimpleDifficultyDataProvider(
             UITemplateDifficultyData difficultyData,
-            ILoggerManager loggerManager = null)
+            ILogger logger)
         {
             this.difficultyData = difficultyData;
-            this.logger = loggerManager?.GetLogger(this);
+            this.logger = logger;
         }
 
         public float GetCurrentDifficulty()

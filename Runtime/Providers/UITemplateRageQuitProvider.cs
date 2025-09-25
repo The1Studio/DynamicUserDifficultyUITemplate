@@ -5,7 +5,6 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
     using TheOneStudio.DynamicUserDifficulty.Models;
     using TheOneStudio.DynamicUserDifficulty.Providers;
     using TheOneStudio.UITemplate.UITemplate.Models.Controllers;
-    using TheOneStudio.UITemplate.UITemplate.Models.LocalDatas;
     using UnityEngine;
     using UnityEngine.Scripting;
 

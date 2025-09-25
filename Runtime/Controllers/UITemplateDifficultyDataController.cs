@@ -9,11 +9,8 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
     using TheOneStudio.DynamicUserDifficulty.Core;
     using TheOneStudio.DynamicUserDifficulty.Models;
     using TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.LocalData;
-    using Cysharp.Threading.Tasks;
     using TheOneStudio.UITemplate.UITemplate.Models.Controllers;
-    using TheOneStudio.UITemplate.UITemplate.Models.LocalDatas;
     using TheOneStudio.UITemplate.UITemplate.Signals;
-    using UnityEngine;
     using UnityEngine.Scripting;
 
     /// <summary>
@@ -28,7 +25,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
         private readonly SignalBus                 signalBus;
         private readonly IDynamicDifficultyService difficultyService;
         private readonly IHandleUserDataServices   handleUserDataServices;
-        private readonly TheOne.Logging.ILogger    logger;
+        private readonly ILogger                   logger;
 
         // Track time for ITickable
         private float sessionTime;
@@ -39,13 +36,13 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
             SignalBus signalBus,
             IHandleUserDataServices handleUserDataServices,
             IDynamicDifficultyService difficultyService,
-            ILoggerManager loggerManager)
+            ILogger logger)
         {
             this.difficultyData        = difficultyData;
             this.signalBus             = signalBus;
             this.handleUserDataServices = handleUserDataServices;
             this.difficultyService     = difficultyService;
-            this.logger                = loggerManager?.GetLogger(this);
+            this.logger                = logger;
 
             // Initialize difficulty for new players
             if (this.difficultyData.CurrentDifficulty <= 0)
@@ -105,9 +102,9 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
             {
                 WinStreak = 0,  // Will be provided by providers
                 LossStreak = 0, // Will be provided by providers
-                LastPlayTime = DateTime.UtcNow
+                LastPlayTime = DateTime.UtcNow,
             };
-            
+
             var result = this.difficultyService.CalculateDifficulty(this.difficultyData.CurrentDifficulty, sessionData);
 
             if (result != null && Math.Abs(result.NewDifficulty - this.difficultyData.CurrentDifficulty) > 0.01f)
@@ -163,9 +160,9 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
             {
                 WinStreak = 0,  // Will be provided by providers
                 LossStreak = 0, // Will be provided by providers
-                LastPlayTime = DateTime.UtcNow
+                LastPlayTime = DateTime.UtcNow,
             };
-            
+
             var result = this.difficultyService.CalculateDifficulty(this.difficultyData.CurrentDifficulty, sessionData);
 
             if (result != null && Math.Abs(result.NewDifficulty - this.difficultyData.CurrentDifficulty) > 0.01f)
@@ -196,9 +193,9 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
             {
                 WinStreak = 0,  // Will be provided by providers
                 LossStreak = 0, // Will be provided by providers
-                LastPlayTime = DateTime.UtcNow
+                LastPlayTime = DateTime.UtcNow,
             };
-            
+
             var result = this.difficultyService.CalculateDifficulty(this.difficultyData.CurrentDifficulty, sessionData);
             return result?.NewDifficulty ?? this.CurrentDifficulty;
         }
@@ -241,7 +238,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
     /// <summary>
     /// Signal fired when difficulty changes.
     /// </summary>
-    public class DifficultyChangedSignal
+    public sealed class DifficultyChangedSignal
     {
         public float OldDifficulty { get; }
         public float NewDifficulty { get; }

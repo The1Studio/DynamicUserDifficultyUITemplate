@@ -20,7 +20,6 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration
     {
         private readonly SignalBus signalBus;
         private readonly UITemplateDifficultyDataController difficultyController;
-        private readonly IDynamicDifficultyService difficultyService;
         private readonly ILogger logger;
 
         private DateTime levelStartTime;
@@ -29,13 +28,11 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration
         public UITemplateDifficultyAdapter(
             SignalBus signalBus,
             UITemplateDifficultyDataController difficultyController,
-            IDynamicDifficultyService difficultyService,
-            ILoggerManager loggerManager)
+            ILogger logger)
         {
             this.signalBus = signalBus;
             this.difficultyController = difficultyController;
-            this.difficultyService = difficultyService;
-            this.logger = loggerManager?.GetLogger(this);
+            this.logger = logger;
         }
 
         /// <summary>
@@ -116,7 +113,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration
                 TimeLimit = MapTimeLimit(difficulty),
                 TargetScore = MapTargetScore(difficulty),
                 HintDelay = MapHintDelay(difficulty),
-                BoosterEffectiveness = MapBoosterEffectiveness(difficulty)
+                BoosterEffectiveness = MapBoosterEffectiveness(difficulty),
             };
         }
 
@@ -206,7 +203,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration
     /// <summary>
     /// Game parameters adjusted by difficulty.
     /// </summary>
-    public class GameParameters
+    public sealed class GameParameters
     {
         public float ScrewSpeed { get; set; } = 1.0f;
         public float TimeLimit { get; set; } = 120f;
