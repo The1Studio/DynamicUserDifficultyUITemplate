@@ -28,7 +28,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
         /// </summary>
         public int GetWinStreak()
         {
-            // UITemplate tracks consecutive wins
+            // UITemplate tracks consecutive wins - correct property name
             return this.levelController?.WinSteak ?? 0;
         }
 
@@ -37,7 +37,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
         /// </summary>
         public int GetLossStreak()
         {
-            // UITemplate tracks consecutive losses
+            // UITemplate tracks consecutive losses - correct property name
             return this.levelController?.LoseSteak ?? 0;
         }
 

@@ -12,7 +12,8 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration
 
     /// <summary>
     /// Adapter that connects UITemplate's signal system to Dynamic Difficulty calculations.
-    /// Listens to game events and triggers difficulty recalculations.
+    /// Listens to game events and logs them for the difficulty system.
+    /// The actual difficulty calculation is handled by the controller and service.
     /// </summary>
     [Preserve]
     public class UITemplateDifficultyAdapter : IInitializable, IDisposable
