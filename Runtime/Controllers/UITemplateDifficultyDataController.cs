@@ -28,7 +28,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
         private readonly SignalBus                 signalBus;
         private readonly IDynamicDifficultyService difficultyService;
         private readonly IHandleUserDataServices   handleUserDataServices;
-        private readonly ILogger                   logger;
+        private readonly TheOne.Logging.ILogger    logger;
 
         // Track time for ITickable
         private float sessionTime;
