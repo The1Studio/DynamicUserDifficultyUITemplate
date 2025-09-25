@@ -2,27 +2,28 @@
     "name": "DynamicUserDifficultyUITemplate.Tests",
     "rootNamespace": "TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Tests",
     "references": [
-        "GUID:3718a9b3e0fa2de41a970e5f9c9b6f64",
-        "DynamicUserDifficulty.Core",
-        "DynamicUserDifficulty.Models",
-        "DynamicUserDifficulty.Providers",
-        "DynamicUserDifficulty.Services",
         "DynamicUserDifficultyUITemplate",
-        "UITemplate.Models",
         "TheOne.Features.WinStreak.Core",
+        "TheOne.Logging",
         "VContainer",
         "UniTask",
         "UnityEngine.TestRunner",
-        "UnityEditor.TestRunner"
+        "UnityEditor.TestRunner",
+        "UITemplate.Models",
+        "UITemplate.Signal",
+        "GameFoundation.Utilities",
+        "GameFoundation.Signals"
     ],
-    "includePlatforms": [],
+    "includePlatforms": [
+        "Editor"
+    ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": true,
     "precompiledReferences": [
         "nunit.framework.dll"
     ],
-    "autoReferenced": false,
+    "autoReferenced": true,
     "defineConstraints": [
         "UNITY_INCLUDE_TESTS"
     ],

@@ -1,6 +1,7 @@
 namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Tests
 {
     using System;
+    using GameFoundation.Scripts.Utilities.ApplicationServices;
     using GameFoundation.Signals;
     using NUnit.Framework;
     using TheOne.Logging;
