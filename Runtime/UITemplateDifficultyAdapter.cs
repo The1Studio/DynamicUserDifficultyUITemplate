@@ -109,11 +109,11 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration
 
             return new GameParameters
             {
-                ScrewSpeed = MapScrewSpeed(difficulty),
-                TimeLimit = MapTimeLimit(difficulty),
-                TargetScore = MapTargetScore(difficulty),
-                HintDelay = MapHintDelay(difficulty),
-                BoosterEffectiveness = MapBoosterEffectiveness(difficulty),
+                ScrewSpeed           = this.MapScrewSpeed(difficulty),
+                TimeLimit            = this.MapTimeLimit(difficulty),
+                TargetScore          = this.MapTargetScore(difficulty),
+                HintDelay            = this.MapHintDelay(difficulty),
+                BoosterEffectiveness = this.MapBoosterEffectiveness(difficulty),
             };
         }
 
@@ -123,12 +123,12 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration
             // 1-3: Slow (0.8x to 1.0x)
             // 4-7: Normal (1.0x to 1.2x)
             // 8-10: Fast (1.2x to 1.5x)
-            if (difficulty <= 3f)
-                return 0.8f + (difficulty - 1f) * 0.1f;
-            else if (difficulty <= 7f)
-                return 1.0f + (difficulty - 4f) * 0.067f;
+            if (difficulty <= UITemplateIntegrationConstants.EASY_DIFFICULTY_THRESHOLD)
+                return UITemplateIntegrationConstants.SCREW_SPEED_SLOW_MIN + (difficulty - UITemplateIntegrationConstants.MIN_DIFFICULTY) * UITemplateIntegrationConstants.EASY_SCREW_SPEED_FACTOR;
+            else if (difficulty <= UITemplateIntegrationConstants.NORMAL_DIFFICULTY_THRESHOLD)
+                return UITemplateIntegrationConstants.SCREW_SPEED_NORMAL_MIN + (difficulty - 4f) * UITemplateIntegrationConstants.NORMAL_SCREW_SPEED_FACTOR;
             else
-                return 1.2f + (difficulty - 8f) * 0.15f;
+                return UITemplateIntegrationConstants.SCREW_SPEED_FAST_MIN + (difficulty - 8f) * UITemplateIntegrationConstants.HARD_SCREW_SPEED_FACTOR;
         }
 
         private float MapTimeLimit(float difficulty)
@@ -137,12 +137,12 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration
             // 1-3: 180-120 seconds
             // 4-7: 120-90 seconds
             // 8-10: 90-60 seconds
-            if (difficulty <= 3f)
-                return 180f - (difficulty - 1f) * 30f;
-            else if (difficulty <= 7f)
-                return 120f - (difficulty - 4f) * 10f;
+            if (difficulty <= UITemplateIntegrationConstants.EASY_DIFFICULTY_THRESHOLD)
+                return UITemplateIntegrationConstants.TIME_LIMIT_EASY_MAX - (difficulty - UITemplateIntegrationConstants.MIN_DIFFICULTY) * UITemplateIntegrationConstants.EASY_TIME_REDUCTION_FACTOR;
+            else if (difficulty <= UITemplateIntegrationConstants.NORMAL_DIFFICULTY_THRESHOLD)
+                return UITemplateIntegrationConstants.TIME_LIMIT_NORMAL_MAX - (difficulty - 4f) * UITemplateIntegrationConstants.NORMAL_TIME_REDUCTION_FACTOR;
             else
-                return 90f - (difficulty - 8f) * 15f;
+                return UITemplateIntegrationConstants.TIME_LIMIT_HARD_MAX - (difficulty - 8f) * UITemplateIntegrationConstants.HARD_TIME_REDUCTION_FACTOR;
         }
 
         private int MapTargetScore(float difficulty)
@@ -151,12 +151,12 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration
             // 1-3: 100-300
             // 4-7: 300-600
             // 8-10: 600-1000
-            if (difficulty <= 3f)
-                return 100 + (int)((difficulty - 1f) * 100f);
-            else if (difficulty <= 7f)
-                return 300 + (int)((difficulty - 4f) * 100f);
+            if (difficulty <= UITemplateIntegrationConstants.EASY_DIFFICULTY_THRESHOLD)
+                return UITemplateIntegrationConstants.TARGET_SCORE_EASY_MIN + (int)((difficulty - UITemplateIntegrationConstants.MIN_DIFFICULTY) * UITemplateIntegrationConstants.EASY_SCORE_INCREMENT);
+            else if (difficulty <= UITemplateIntegrationConstants.NORMAL_DIFFICULTY_THRESHOLD)
+                return UITemplateIntegrationConstants.TARGET_SCORE_NORMAL_MIN + (int)((difficulty - 4f) * UITemplateIntegrationConstants.NORMAL_SCORE_INCREMENT);
             else
-                return 600 + (int)((difficulty - 8f) * 200f);
+                return UITemplateIntegrationConstants.TARGET_SCORE_HARD_MIN + (int)((difficulty - 8f) * UITemplateIntegrationConstants.HARD_SCORE_INCREMENT);
         }
 
         private float MapHintDelay(float difficulty)
@@ -165,12 +165,12 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration
             // 1-3: 5-10 seconds
             // 4-7: 10-20 seconds
             // 8-10: 20-30 seconds
-            if (difficulty <= 3f)
-                return 5f + (difficulty - 1f) * 2.5f;
-            else if (difficulty <= 7f)
-                return 10f + (difficulty - 4f) * 3.33f;
+            if (difficulty <= UITemplateIntegrationConstants.EASY_DIFFICULTY_THRESHOLD)
+                return UITemplateIntegrationConstants.HINT_DELAY_EASY_MIN + (difficulty - UITemplateIntegrationConstants.MIN_DIFFICULTY) * UITemplateIntegrationConstants.EASY_HINT_INCREMENT;
+            else if (difficulty <= UITemplateIntegrationConstants.NORMAL_DIFFICULTY_THRESHOLD)
+                return UITemplateIntegrationConstants.HINT_DELAY_NORMAL_MIN + (difficulty - 4f) * UITemplateIntegrationConstants.NORMAL_HINT_INCREMENT;
             else
-                return 20f + (difficulty - 8f) * 5f;
+                return UITemplateIntegrationConstants.HINT_DELAY_HARD_MIN + (difficulty - 8f) * UITemplateIntegrationConstants.HARD_HINT_INCREMENT;
         }
 
         private float MapBoosterEffectiveness(float difficulty)
@@ -179,12 +179,12 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration
             // 1-3: 1.5x to 1.2x
             // 4-7: 1.2x to 1.0x
             // 8-10: 1.0x to 0.8x
-            if (difficulty <= 3f)
-                return 1.5f - (difficulty - 1f) * 0.15f;
-            else if (difficulty <= 7f)
-                return 1.2f - (difficulty - 4f) * 0.067f;
+            if (difficulty <= UITemplateIntegrationConstants.EASY_DIFFICULTY_THRESHOLD)
+                return UITemplateIntegrationConstants.BOOSTER_EFFECT_EASY_MAX - (difficulty - UITemplateIntegrationConstants.MIN_DIFFICULTY) * UITemplateIntegrationConstants.EASY_BOOSTER_DECREMENT;
+            else if (difficulty <= UITemplateIntegrationConstants.NORMAL_DIFFICULTY_THRESHOLD)
+                return UITemplateIntegrationConstants.BOOSTER_EFFECT_NORMAL_MAX - (difficulty - 4f) * UITemplateIntegrationConstants.NORMAL_BOOSTER_DECREMENT;
             else
-                return 1.0f - (difficulty - 8f) * 0.1f;
+                return UITemplateIntegrationConstants.BOOSTER_EFFECT_HARD_MAX - (difficulty - 8f) * UITemplateIntegrationConstants.HARD_BOOSTER_DECREMENT;
         }
 
         public void Dispose()
@@ -205,10 +205,10 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration
     /// </summary>
     public sealed class GameParameters
     {
-        public float ScrewSpeed { get; set; } = 1.0f;
-        public float TimeLimit { get; set; } = 120f;
-        public int TargetScore { get; set; } = 500;
-        public float HintDelay { get; set; } = 10f;
-        public float BoosterEffectiveness { get; set; } = 1.0f;
+        public float ScrewSpeed { get; set; } = UITemplateIntegrationConstants.SCREW_SPEED_NORMAL_MIN;
+        public float TimeLimit { get; set; } = UITemplateIntegrationConstants.TIME_LIMIT_NORMAL_MAX;
+        public int TargetScore { get; set; } = UITemplateIntegrationConstants.TARGET_SCORE_NORMAL_MAX;
+        public float HintDelay { get; set; } = UITemplateIntegrationConstants.HINT_DELAY_NORMAL_MIN;
+        public float BoosterEffectiveness { get; set; } = UITemplateIntegrationConstants.BOOSTER_EFFECT_NORMAL_MIN;
     }
 }

@@ -1,9 +1,9 @@
 namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
 {
     using System;
+    using TheOne.Logging;
     using TheOneStudio.DynamicUserDifficulty.Providers;
     using TheOneStudio.UITemplate.UITemplate.Models.Controllers;
-    using UnityEngine;
     using UnityEngine.Scripting;
 
     /// <summary>
@@ -14,11 +14,13 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
     public class UITemplateTimeDecayProvider : ITimeDecayProvider
     {
         private readonly UITemplateGameSessionDataController sessionController;
+        private readonly ILogger logger;
 
         [Preserve]
-        public UITemplateTimeDecayProvider(UITemplateGameSessionDataController sessionController)
+        public UITemplateTimeDecayProvider(UITemplateGameSessionDataController sessionController, ILogger logger)
         {
             this.sessionController = sessionController ?? throw new ArgumentNullException(nameof(sessionController));
+            this.logger = logger;
         }
 
         /// <summary>
@@ -44,7 +46,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
             }
             catch (Exception ex)
             {
-                Debug.LogWarning($"[UITemplateTimeDecayProvider] Error getting time since last play: {ex.Message}");
+                this.logger?.Warning($"[UITemplateTimeDecayProvider] Error getting time since last play: {ex.Message}");
                 return TimeSpan.Zero;
             }
         }
@@ -59,15 +61,15 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
                 var sessionHistory = this.sessionController?.GetDetailedSessionHistory();
                 if (sessionHistory == null || sessionHistory.Count == 0)
                 {
-                    return DateTime.UtcNow.AddDays(-1); // Default to 1 day ago if no history
+                    return DateTime.UtcNow.AddDays(-UITemplateIntegrationConstants.DEFAULT_DAYS_AGO); // Default to 1 day ago if no history
                 }
 
                 return sessionHistory[sessionHistory.Count - 1].EndTime;
             }
             catch (Exception ex)
             {
-                Debug.LogWarning($"[UITemplateTimeDecayProvider] Error getting last session end time: {ex.Message}");
-                return DateTime.UtcNow.AddDays(-1);
+                this.logger?.Warning($"[UITemplateTimeDecayProvider] Error getting last session end time: {ex.Message}");
+                return DateTime.UtcNow.AddDays(-UITemplateIntegrationConstants.DEFAULT_DAYS_AGO);
             }
         }
 
@@ -78,12 +80,12 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
         {
             try
             {
-                var timeSinceLastPlay = GetTimeSinceLastPlay();
+                var timeSinceLastPlay = this.GetTimeSinceLastPlay();
                 return Math.Max(0, (int)timeSinceLastPlay.TotalDays);
             }
             catch (Exception ex)
             {
-                Debug.LogWarning($"[UITemplateTimeDecayProvider] Error getting days away from game: {ex.Message}");
+                this.logger?.Warning($"[UITemplateTimeDecayProvider] Error getting days away from game: {ex.Message}");
                 return 0;
             }
         }

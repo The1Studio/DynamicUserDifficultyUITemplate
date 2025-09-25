@@ -43,16 +43,16 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
                 var lastSession = sessionHistory[sessionHistory.Count - 1];
 
                 // Determine quit type based on session characteristics
-                bool shortSession = lastSession.Duration < DifficultyConstants.RAGE_QUIT_TIME_THRESHOLD;
-                bool hadLosses = lastSession.LevelsFailed > 0;
-                bool noWins = lastSession.LevelsCompleted == 0;
-                bool endedAfterLoss = !lastSession.LastLevelWon && lastSession.TimeSinceLastLevel < 10;
+                var shortSession = lastSession.Duration < DifficultyConstants.RAGE_QUIT_TIME_THRESHOLD;
+                var hadLosses = lastSession.LevelsFailed > 0;
+                var noWins = lastSession.LevelsCompleted == 0;
+                var endedAfterLoss = !lastSession.LastLevelWon && lastSession.TimeSinceLastLevel < UITemplateIntegrationConstants.SHORT_SESSION_THRESHOLD_SECONDS;
 
                 if (shortSession && hadLosses && (noWins || endedAfterLoss))
                 {
                     return QuitType.RageQuit;
                 }
-                else if (lastSession.Duration > 1800) // 30 minutes
+                else if (lastSession.Duration > UITemplateIntegrationConstants.NORMAL_SESSION_THRESHOLD_SECONDS)
                 {
                     return QuitType.Normal;
                 }
@@ -76,12 +76,12 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
             try
             {
                 // Use the existing method from session controller
-                return this.sessionController?.GetAverageSessionDuration() ?? 60f;
+                return this.sessionController?.GetAverageSessionDuration() ?? UITemplateIntegrationConstants.DEFAULT_SESSION_DURATION_SECONDS;
             }
             catch (Exception ex)
             {
                 Debug.LogWarning($"[UITemplateRageQuitProvider] Error getting average session duration: {ex.Message}");
-                return 60f;
+                return UITemplateIntegrationConstants.DEFAULT_SESSION_DURATION_SECONDS;
             }
         }
 
@@ -117,13 +117,13 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
                 }
 
                 // Count rage quits from recent sessions
-                int rageQuitCount = 0;
-                int maxSessionsToCheck = Math.Min(10, sessionHistory.Count); // Check last 10 sessions
+                var rageQuitCount = 0;
+                var maxSessionsToCheck = Math.Min(UITemplateIntegrationConstants.MAX_SESSIONS_TO_CHECK, sessionHistory.Count);
 
-                for (int i = sessionHistory.Count - maxSessionsToCheck; i < sessionHistory.Count; i++)
+                for (var i = sessionHistory.Count - maxSessionsToCheck; i < sessionHistory.Count; i++)
                 {
                     var session = sessionHistory[i];
-                    bool isRageQuit = session.Duration < DifficultyConstants.RAGE_QUIT_TIME_THRESHOLD &&
+                    var isRageQuit = session.Duration < DifficultyConstants.RAGE_QUIT_TIME_THRESHOLD &&
                                      session.LevelsFailed > 0 &&
                                      session.LevelsCompleted == 0;
 

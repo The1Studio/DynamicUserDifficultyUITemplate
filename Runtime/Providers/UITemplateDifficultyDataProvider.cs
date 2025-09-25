@@ -5,6 +5,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
     using TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.LocalData;
     using UnityEngine;
     using UnityEngine.Scripting;
+    using ILogger = TheOne.Logging.ILogger;
 
     /// <summary>
     /// Focused provider for difficulty data persistence only.
@@ -14,11 +15,13 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
     public class UITemplateDifficultyDataProvider : IDifficultyDataProvider
     {
         private readonly UITemplateDifficultyData difficultyData;
+        private readonly ILogger logger;
 
         [Preserve]
-        public UITemplateDifficultyDataProvider(UITemplateDifficultyData difficultyData)
+        public UITemplateDifficultyDataProvider(UITemplateDifficultyData difficultyData, ILogger logger)
         {
             this.difficultyData = difficultyData ?? throw new ArgumentNullException(nameof(difficultyData));
+            this.logger = logger;
         }
 
         /// <summary>
@@ -26,7 +29,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
         /// </summary>
         public float GetCurrentDifficulty()
         {
-            return this.difficultyData?.CurrentDifficulty ?? 3f; // Default difficulty if null
+            return this.difficultyData?.CurrentDifficulty ?? UITemplateIntegrationConstants.DEFAULT_DIFFICULTY;
         }
 
         /// <summary>
@@ -36,8 +39,8 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
         {
             if (this.difficultyData != null)
             {
-                this.difficultyData.CurrentDifficulty = Mathf.Clamp(newDifficulty, 1f, 10f);
-                Debug.Log($"[UITemplateDifficultyDataProvider] Difficulty updated to {newDifficulty:F2}");
+                this.difficultyData.CurrentDifficulty = Mathf.Clamp(newDifficulty, UITemplateIntegrationConstants.MIN_DIFFICULTY, UITemplateIntegrationConstants.MAX_DIFFICULTY);
+                this.logger?.Info($"[UITemplateDifficultyDataProvider] Difficulty updated to {newDifficulty:F2}");
             }
         }
     }

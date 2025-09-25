@@ -2,11 +2,11 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
 {
     using System;
     using System.Linq;
+    using TheOne.Logging;
     using TheOneStudio.DynamicUserDifficulty.Providers;
     using global::UITemplate.Scripts.Enum;
     using TheOneStudio.UITemplate.UITemplate.Models;
     using TheOneStudio.UITemplate.UITemplate.Models.Controllers;
-    using UnityEngine;
     using UnityEngine.Scripting;
 
     /// <summary>
@@ -17,11 +17,13 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
     public class UITemplateLevelProgressProvider : ILevelProgressProvider
     {
         private readonly UITemplateLevelDataController levelController;
+        private readonly ILogger logger;
 
         [Preserve]
-        public UITemplateLevelProgressProvider(UITemplateLevelDataController levelController)
+        public UITemplateLevelProgressProvider(UITemplateLevelDataController levelController, ILogger logger)
         {
             this.levelController = levelController ?? throw new ArgumentNullException(nameof(levelController));
+            this.logger = logger;
         }
 
         /// <summary>
@@ -39,8 +41,8 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
         {
             try
             {
-                var currentLevel = GetCurrentLevel();
-                var levelData = this.levelController?.GetLevelData(currentLevel);
+                var currentLevel = this.GetCurrentLevel();
+                var levelData    = this.levelController?.GetLevelData(currentLevel);
 
                 if (levelData == null)
                 {
@@ -52,7 +54,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
             }
             catch (Exception ex)
             {
-                Debug.LogWarning($"[UITemplateLevelProgressProvider] Error getting attempts on current level: {ex.Message}");
+                this.logger?.Warning($"[UITemplateLevelProgressProvider] Error getting attempts on current level: {ex.Message}");
                 return 0;
             }
         }
@@ -64,28 +66,28 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
         {
             try
             {
-                var currentLevel = GetCurrentLevel();
-                var levelData = this.levelController?.GetLevelData(currentLevel);
+                var currentLevel = this.GetCurrentLevel();
+                var levelData    = this.levelController?.GetLevelData(currentLevel);
 
                 if (levelData == null)
                 {
-                    return 3f; // Default medium difficulty
+                    return UITemplateIntegrationConstants.DEFAULT_DIFFICULTY;
                 }
 
                 // Map LevelDifficulty enum to float value (0=Easy, 1=Normal, 2=Hard, 3=VeryHard)
                 return levelData.StaticDifficulty switch
                 {
-                    LevelDifficulty.Easy => 2f,
-                    LevelDifficulty.Normal => 5f,
-                    LevelDifficulty.Hard => 8f,
-                    LevelDifficulty.VeryHard => 10f,
-                    _ => 3f,
+                    LevelDifficulty.Easy => UITemplateIntegrationConstants.EASY_DIFFICULTY_VALUE,
+                    LevelDifficulty.Normal => UITemplateIntegrationConstants.NORMAL_DIFFICULTY_VALUE,
+                    LevelDifficulty.Hard => UITemplateIntegrationConstants.HARD_DIFFICULTY_VALUE,
+                    LevelDifficulty.VeryHard => UITemplateIntegrationConstants.VERY_HARD_DIFFICULTY_VALUE,
+                    _ => UITemplateIntegrationConstants.DEFAULT_DIFFICULTY,
                 };
             }
             catch (Exception ex)
             {
-                Debug.LogWarning($"[UITemplateLevelProgressProvider] Error getting current level difficulty: {ex.Message}");
-                return 3f;
+                this.logger?.Warning($"[UITemplateLevelProgressProvider] Error getting current level difficulty: {ex.Message}");
+                return UITemplateIntegrationConstants.DEFAULT_DIFFICULTY;
             }
         }
 
@@ -99,7 +101,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
                 var allLevels = this.levelController?.GetAllLevels();
                 if (allLevels == null || allLevels.Count == 0)
                 {
-                    return 60f; // Default 60 seconds
+                    return UITemplateIntegrationConstants.DEFAULT_COMPLETION_TIME_SECONDS;
                 }
 
                 // Get completed levels with valid win times
@@ -110,15 +112,15 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
 
                 if (completedLevels.Count == 0)
                 {
-                    return 60f;
+                    return UITemplateIntegrationConstants.DEFAULT_COMPLETION_TIME_SECONDS;
                 }
 
                 return completedLevels.Average();
             }
             catch (Exception ex)
             {
-                Debug.LogWarning($"[UITemplateLevelProgressProvider] Error getting average completion time: {ex.Message}");
-                return 60f;
+                this.logger?.Warning($"[UITemplateLevelProgressProvider] Error getting average completion time: {ex.Message}");
+                return UITemplateIntegrationConstants.DEFAULT_COMPLETION_TIME_SECONDS;
             }
         }
 
@@ -148,7 +150,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
             }
             catch (Exception ex)
             {
-                Debug.LogWarning($"[UITemplateLevelProgressProvider] Error getting completion rate: {ex.Message}");
+                this.logger?.Warning($"[UITemplateLevelProgressProvider] Error getting completion rate: {ex.Message}");
                 return 0f;
             }
         }
