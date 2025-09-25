@@ -2,33 +2,28 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
 {
     using System;
     using GameFoundation.DI;
-    using GameFoundation.Scripts.Utilities.ApplicationServices;
     using GameFoundation.Scripts.Utilities.UserData;
     using GameFoundation.Signals;
     using TheOne.Logging;
     using TheOneStudio.DynamicUserDifficulty.Core;
-    using TheOneStudio.DynamicUserDifficulty.Models;
     using TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.LocalData;
     using TheOneStudio.UITemplate.UITemplate.Models.Controllers;
     using TheOneStudio.UITemplate.UITemplate.Signals;
     using UnityEngine.Scripting;
 
     /// <summary>
-    /// UITemplate controller for Dynamic User Difficulty data.
-    /// Manages difficulty state coordination and UI updates.
-    /// The actual provider logic is now in separate focused provider classes.
+    /// UITemplate controller for Dynamic User Difficulty.
+    /// Provides access to the current difficulty value and handles automatic recalculation on level completion.
+    /// The difficulty calculation is handled by the IDynamicDifficultyService using data from providers.
     /// </summary>
     [Preserve]
-    public class UITemplateDifficultyDataController : IUITemplateControllerData, ITickable
+    public class UITemplateDifficultyDataController : IUITemplateControllerData
     {
         private readonly UITemplateDifficultyData  difficultyData;
         private readonly SignalBus                 signalBus;
         private readonly IDynamicDifficultyService difficultyService;
         private readonly IHandleUserDataServices   handleUserDataServices;
         private readonly ILogger                   logger;
-
-        // Track time for ITickable
-        private float sessionTime;
 
         [Preserve]
         public UITemplateDifficultyDataController(
@@ -52,62 +47,31 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
                 this.logger?.Info($"[UITemplateDifficultyController] New player initialized with default difficulty: {defaultDifficulty:F1}");
             }
 
-            // Subscribe to application lifecycle events
-            this.signalBus.Subscribe<ApplicationQuitSignal>(this.OnApplicationQuit);
-            this.signalBus.Subscribe<ApplicationPauseSignal>(this.OnApplicationPause);
-
-            // Subscribe to game signals for difficulty updates
-            this.signalBus.Subscribe<LevelStartedSignal>(this.OnLevelStarted);
+            // Subscribe to level completion for automatic difficulty recalculation
             this.signalBus.Subscribe<LevelEndedSignal>(this.OnLevelEnded);
 
-            this.logger?.Info($"[UITemplateDifficultyController] Controller initialized. Current difficulty: {this.difficultyData.CurrentDifficulty:F1}");
+            this.logger?.Info($"[UITemplateDifficultyController] Initialized. Current difficulty: {this.difficultyData.CurrentDifficulty:F1}");
         }
 
         #region Public Properties
 
         /// <summary>
-        /// Gets the current difficulty value.
+        /// Gets the current difficulty value (1-10 scale).
+        /// Games should use this value to adjust their parameters accordingly.
         /// </summary>
         public float CurrentDifficulty => this.difficultyData.CurrentDifficulty;
-
-        /// <summary>
-        /// Gets the session time in seconds.
-        /// </summary>
-        public float SessionTime => this.sessionTime;
-
-        #endregion
-
-        #region ITickable Implementation
-
-        public void Tick()
-        {
-            this.sessionTime += UnityEngine.Time.deltaTime;
-        }
 
         #endregion
 
         #region Signal Handlers
 
-        private void OnLevelStarted(LevelStartedSignal signal)
-        {
-            // Log level start with current difficulty
-            this.logger?.Info($"[UITemplateDifficultyController] Level {signal.Level} started with difficulty: {this.CurrentDifficulty:F1}");
-        }
-
         private void OnLevelEnded(LevelEndedSignal signal)
         {
-            // Recalculate difficulty after level ends
-            // Create session data for the calculation
-            var sessionData = new PlayerSessionData
-            {
-                WinStreak = 0,  // Will be provided by providers
-                LossStreak = 0, // Will be provided by providers
-                LastPlayTime = DateTime.UtcNow,
-            };
+            // The difficulty service will use the providers to get all necessary data
+            // We just need to trigger the calculation with the current difficulty
+            var result = this.difficultyService.CalculateDifficulty(this.difficultyData.CurrentDifficulty, null);
 
-            var result = this.difficultyService.CalculateDifficulty(this.difficultyData.CurrentDifficulty, sessionData);
-
-            if (result != null && Math.Abs(result.NewDifficulty - this.difficultyData.CurrentDifficulty) > 0.01f)
+            if (result != null && Math.Abs(result.NewDifficulty - this.difficultyData.CurrentDifficulty) > UITemplateIntegrationConstants.DIFFICULTY_CHANGE_THRESHOLD)
             {
                 var oldDifficulty = this.difficultyData.CurrentDifficulty;
                 this.difficultyData.CurrentDifficulty = result.NewDifficulty;
@@ -126,46 +90,19 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
             this.logger?.Info($"[UITemplateDifficultyController] Level {signal.Level} {levelResult}. Current difficulty: {this.CurrentDifficulty:F1}");
         }
 
-        private void OnApplicationQuit(ApplicationQuitSignal signal)
-        {
-            // Save difficulty data on quit
-            this.handleUserDataServices.SaveAll();
-            this.logger?.Info($"[UITemplateDifficultyController] Application quit. Final difficulty: {this.CurrentDifficulty:F1}");
-        }
-
-        private void OnApplicationPause(ApplicationPauseSignal signal)
-        {
-            if (signal.PauseStatus)
-            {
-                // Save data when app goes to background
-                this.handleUserDataServices.SaveAll();
-                this.logger?.Info($"[UITemplateDifficultyController] Application paused. Difficulty saved: {this.CurrentDifficulty:F1}");
-            }
-        }
-
         #endregion
 
         #region Public Methods
 
         /// <summary>
         /// Manually triggers difficulty recalculation.
-        /// </summary>
-        /// <summary>
-        /// Manually triggers difficulty recalculation.
+        /// The difficulty service will use the registered providers to get all necessary data.
         /// </summary>
         public void RecalculateDifficulty()
         {
-            // Create session data for the calculation
-            var sessionData = new PlayerSessionData
-            {
-                WinStreak = 0,  // Will be provided by providers
-                LossStreak = 0, // Will be provided by providers
-                LastPlayTime = DateTime.UtcNow,
-            };
+            var result = this.difficultyService.CalculateDifficulty(this.difficultyData.CurrentDifficulty, null);
 
-            var result = this.difficultyService.CalculateDifficulty(this.difficultyData.CurrentDifficulty, sessionData);
-
-            if (result != null && Math.Abs(result.NewDifficulty - this.difficultyData.CurrentDifficulty) > 0.01f)
+            if (result != null && Math.Abs(result.NewDifficulty - this.difficultyData.CurrentDifficulty) > UITemplateIntegrationConstants.DIFFICULTY_CHANGE_THRESHOLD)
             {
                 var oldDifficulty = this.difficultyData.CurrentDifficulty;
                 this.difficultyData.CurrentDifficulty = result.NewDifficulty;
@@ -182,21 +119,11 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
 
         /// <summary>
         /// Gets a preview of what the difficulty would be with current conditions.
-        /// </summary>
-        /// <summary>
-        /// Gets a preview of what the difficulty would be with current conditions.
+        /// Does not save the change.
         /// </summary>
         public float PreviewDifficulty()
         {
-            // Create session data for the calculation
-            var sessionData = new PlayerSessionData
-            {
-                WinStreak = 0,  // Will be provided by providers
-                LossStreak = 0, // Will be provided by providers
-                LastPlayTime = DateTime.UtcNow,
-            };
-
-            var result = this.difficultyService.CalculateDifficulty(this.difficultyData.CurrentDifficulty, sessionData);
+            var result = this.difficultyService.CalculateDifficulty(this.difficultyData.CurrentDifficulty, null);
             return result?.NewDifficulty ?? this.CurrentDifficulty;
         }
 
@@ -224,9 +151,6 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
         public void Dispose()
         {
             // Unsubscribe from signals
-            this.signalBus.Unsubscribe<ApplicationQuitSignal>(this.OnApplicationQuit);
-            this.signalBus.Unsubscribe<ApplicationPauseSignal>(this.OnApplicationPause);
-            this.signalBus.Unsubscribe<LevelStartedSignal>(this.OnLevelStarted);
             this.signalBus.Unsubscribe<LevelEndedSignal>(this.OnLevelEnded);
 
             this.logger?.Info("[UITemplateDifficultyController] Controller disposed");

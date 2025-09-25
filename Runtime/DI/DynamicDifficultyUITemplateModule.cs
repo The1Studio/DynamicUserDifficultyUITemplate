@@ -42,10 +42,6 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.DI
             builder.Register<UITemplateLevelProgressProvider>(Lifetime.Singleton)
                 .As<ILevelProgressProvider>();
 
-            // Register the adapter for signal handling
-            builder.Register<UITemplateDifficultyAdapter>(Lifetime.Singleton)
-                .AsImplementedInterfaces();
-
             // Install the core Dynamic Difficulty module
             // This registers the service, calculator, and modifiers
             builder.RegisterDynamicDifficulty();
