@@ -14,7 +14,8 @@
         "TheOne.Features.WinStreak.Core",
         "GameFoundation.Models",
         "VContainer",
-        "UniTask"
+        "UniTask",
+        "WinStreak.Core"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

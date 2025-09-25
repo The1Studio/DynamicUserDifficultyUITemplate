@@ -13,6 +13,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
     using TheOneStudio.UITemplate.UITemplate.Models.Controllers;
     using TheOneStudio.UITemplate.UITemplate.Models.LocalDatas;
     using TheOneStudio.UITemplate.UITemplate.Signals;
+    using UnityEngine;
     using UnityEngine.Scripting;
 
     /// <summary>
@@ -104,8 +105,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
             {
                 WinStreak = 0,  // Will be provided by providers
                 LossStreak = 0, // Will be provided by providers
-                TimeSinceLastPlay = 0, // Will be provided by providers
-                IsReturningPlayer = true
+                LastPlayTime = DateTime.UtcNow
             };
             
             var result = this.difficultyService.CalculateDifficulty(this.difficultyData.CurrentDifficulty, sessionData);
@@ -163,8 +163,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
             {
                 WinStreak = 0,  // Will be provided by providers
                 LossStreak = 0, // Will be provided by providers
-                TimeSinceLastPlay = 0, // Will be provided by providers
-                IsReturningPlayer = true
+                LastPlayTime = DateTime.UtcNow
             };
             
             var result = this.difficultyService.CalculateDifficulty(this.difficultyData.CurrentDifficulty, sessionData);
@@ -197,8 +196,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
             {
                 WinStreak = 0,  // Will be provided by providers
                 LossStreak = 0, // Will be provided by providers
-                TimeSinceLastPlay = 0, // Will be provided by providers
-                IsReturningPlayer = true
+                LastPlayTime = DateTime.UtcNow
             };
             
             var result = this.difficultyService.CalculateDifficulty(this.difficultyData.CurrentDifficulty, sessionData);
