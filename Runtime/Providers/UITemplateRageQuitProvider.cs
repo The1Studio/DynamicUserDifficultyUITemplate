@@ -118,7 +118,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
 
                 // Count rage quits from recent sessions
                 var rageQuitCount = 0;
-                var maxSessionsToCheck = Math.Min(UITemplateIntegrationConstants.MAX_SESSIONS_TO_CHECK, sessionHistory.Count);
+                var maxSessionsToCheck = Math.Min(DifficultyConstants.MAX_RECENT_SESSIONS, sessionHistory.Count);
 
                 for (var i = sessionHistory.Count - maxSessionsToCheck; i < sessionHistory.Count; i++)
                 {

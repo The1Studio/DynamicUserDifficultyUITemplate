@@ -82,13 +82,13 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
                     LevelDifficulty.Normal => UITemplateIntegrationConstants.NORMAL_DIFFICULTY_VALUE,
                     LevelDifficulty.Hard => UITemplateIntegrationConstants.HARD_DIFFICULTY_VALUE,
                     LevelDifficulty.VeryHard => UITemplateIntegrationConstants.VERY_HARD_DIFFICULTY_VALUE,
-                    _ => UITemplateIntegrationConstants.DEFAULT_DIFFICULTY,
+                    _ => DifficultyConstants.DEFAULT_DIFFICULTY,
                 };
             }
             catch (Exception ex)
             {
                 this.logger?.Warning($"[UITemplateLevelProgressProvider] Error getting current level difficulty: {ex.Message}");
-                return UITemplateIntegrationConstants.DEFAULT_DIFFICULTY;
+                return DifficultyConstants.DEFAULT_DIFFICULTY;
             }
         }
 
@@ -121,7 +121,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
             catch (Exception ex)
             {
                 this.logger?.Warning($"[UITemplateLevelProgressProvider] Error getting average completion time: {ex.Message}");
-                return UITemplateIntegrationConstants.DEFAULT_COMPLETION_TIME_SECONDS;
+                return DifficultyConstants.DEFAULT_COMPLETION_TIME_SECONDS;
             }
         }
 
