@@ -80,7 +80,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
                 this.difficultyData.CurrentDifficulty = result.NewDifficulty;
 
                 // Also update the level's dynamic difficulty for future reference
-                var levelData = this.levelController.GetLevelData(signal.Level);
+                var levelData = this.levelController.GetLevelData(signal.Level, signal.Mode);
                 levelData.DynamicDifficulty = result.NewDifficulty;
 
                 // Save the updated difficulty
@@ -95,7 +95,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
             else if (result != null)
             {
                 // Even if difficulty didn't change significantly, update level's dynamic difficulty
-                var levelData = this.levelController.GetLevelData(signal.Level);
+                var levelData = this.levelController.GetLevelData(signal.Level, signal.Mode);
                 levelData.DynamicDifficulty = this.difficultyData.CurrentDifficulty;
             }
 
