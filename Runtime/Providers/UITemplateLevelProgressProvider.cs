@@ -7,7 +7,6 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
     using TheOneStudio.DynamicUserDifficulty.Providers;
     using TheOneStudio.UITemplate.UITemplate.Models;
     using TheOneStudio.UITemplate.UITemplate.Models.Controllers;
-    using TheOneStudio.UITemplate.UITemplate.Models.LocalDatas;
     using UnityEngine.Scripting;
 
     /// <summary>
@@ -68,9 +67,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
         {
             try
             {
-                var currentLevel = this.GetCurrentLevel();
-                var currentMode  = this.levelController?.CurrentMode ?? UITemplateUserLevelData.ClassicMode;
-                var levelData    = this.levelController?.GetLevelData(currentLevel, currentMode);
+                var levelData   = this.levelController.GetCurrentLevelData;
 
                 if (levelData == null)
                 {

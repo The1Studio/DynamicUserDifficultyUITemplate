@@ -5,6 +5,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
     using GameFoundation.Signals;
     using TheOne.Logging;
     using TheOneStudio.DynamicUserDifficulty.Core;
+    using TheOneStudio.DynamicUserDifficulty.Models;
     using TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.LocalData;
     using TheOneStudio.UITemplate.UITemplate.Models.Controllers;
     using TheOneStudio.UITemplate.UITemplate.Signals;
@@ -18,7 +19,6 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
     [Preserve]
     public class UITemplateDifficultyDataController : IUITemplateControllerData
     {
-        private readonly UITemplateDifficultyData  difficultyData;
         private readonly SignalBus                 signalBus;
         private readonly IDynamicDifficultyService difficultyService;
         private readonly IHandleUserDataServices   handleUserDataServices;
@@ -27,14 +27,12 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
 
         [Preserve]
         public UITemplateDifficultyDataController(
-            UITemplateDifficultyData difficultyData,
             SignalBus signalBus,
             IHandleUserDataServices handleUserDataServices,
             IDynamicDifficultyService difficultyService,
             UITemplateLevelDataController levelController,
             ILogger logger)
         {
-            this.difficultyData        = difficultyData;
             this.signalBus             = signalBus;
             this.handleUserDataServices = handleUserDataServices;
             this.difficultyService     = difficultyService;
@@ -42,17 +40,22 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
             this.logger                = logger;
 
             // Initialize difficulty for new players
-            if (this.difficultyData.CurrentDifficulty <= 0)
+            if (this.difficultyService.CurrentDifficulty <= 0)
             {
                 var defaultDifficulty = this.difficultyService.GetDefaultDifficulty();
-                this.difficultyData.CurrentDifficulty = defaultDifficulty;
+                var result = new DifficultyResult
+                {
+                    NewDifficulty = defaultDifficulty,
+                    PreviousDifficulty = 0
+                };
+                this.difficultyService.ApplyDifficulty(result);
                 this.logger?.Info($"[UITemplateDifficultyController] New player initialized with default difficulty: {defaultDifficulty:F1}");
             }
 
             // Subscribe to level completion for automatic difficulty recalculation
             this.signalBus.Subscribe<LevelEndedSignal>(this.OnLevelEnded);
 
-            this.logger?.Info($"[UITemplateDifficultyController] Initialized. Current difficulty: {this.difficultyData.CurrentDifficulty:F1}");
+            this.logger?.Info($"[UITemplateDifficultyController] Initialized. Current difficulty: {this.difficultyService.CurrentDifficulty:F1}");
         }
 
         #region Public Properties
@@ -61,7 +64,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
         /// Gets the current difficulty value (1-10 scale).
         /// Games should use this value to adjust their parameters accordingly.
         /// </summary>
-        public float CurrentDifficulty => this.difficultyData.CurrentDifficulty;
+        public float CurrentDifficulty => this.difficultyService.CurrentDifficulty;
 
         #endregion
 
@@ -70,36 +73,34 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
         private void OnLevelEnded(LevelEndedSignal signal)
         {
             // The difficulty service will use the providers to get all necessary data
-            // We just need to trigger the calculation with the current difficulty
-            var result = this.difficultyService.CalculateDifficulty(this.difficultyData.CurrentDifficulty, null);
+            // We just need to trigger the calculation
+            var result = this.difficultyService.CalculateDifficulty();
 
-            if (result != null && Math.Abs(result.NewDifficulty - this.difficultyData.CurrentDifficulty) > DifficultyConstants.EPSILON)
+            if (result != null && Math.Abs(result.NewDifficulty - result.PreviousDifficulty) > DifficultyConstants.EPSILON)
             {
-                var oldDifficulty = this.difficultyData.CurrentDifficulty;
-                this.difficultyData.CurrentDifficulty = result.NewDifficulty;
+                // Apply the difficulty through the service
+                this.difficultyService.ApplyDifficulty(result);
 
                 // Also update the level's dynamic difficulty for future reference
-                var levelData = this.levelController.GetLevelData(signal.Level, signal.Mode);
-                levelData.DynamicDifficulty = result.NewDifficulty;
+                this.levelController.UpdateLevelDifficulty(signal.Level, signal.Mode, result.NewDifficulty);
 
                 // Save the updated difficulty
                 this.handleUserDataServices.SaveAll();
 
-                this.logger?.Info($"[UITemplateDifficultyController] Difficulty adjusted: {oldDifficulty:F1} -> {result.NewDifficulty:F1} " +
+                this.logger?.Info($"[UITemplateDifficultyController] Difficulty adjusted: {result.PreviousDifficulty:F1} -> {result.NewDifficulty:F1} " +
                     $"(Change: {result.TotalAdjustment:+0.##;-0.##})");
 
                 // Fire a signal for UI updates if needed
-                this.signalBus.Fire(new DifficultyChangedSignal(oldDifficulty, result.NewDifficulty));
+                this.signalBus.Fire(new DifficultyChangedSignal(result.PreviousDifficulty, result.NewDifficulty));
             }
             else if (result != null)
             {
                 // Even if difficulty didn't change significantly, update level's dynamic difficulty
-                var levelData = this.levelController.GetLevelData(signal.Level, signal.Mode);
-                levelData.DynamicDifficulty = this.difficultyData.CurrentDifficulty;
+                this.levelController.UpdateLevelDifficulty(signal.Level, signal.Mode, this.difficultyService.CurrentDifficulty);
             }
 
             var levelResult = signal.IsWin ? "Won" : "Lost";
-            this.logger?.Info($"[UITemplateDifficultyController] Level {signal.Level} {levelResult}. Current difficulty: {this.CurrentDifficulty:F1}");
+            this.logger?.Info($"[UITemplateDifficultyController] Level {signal.Level} {levelResult}. Current difficulty: {this.difficultyService.CurrentDifficulty:F1}");
         }
 
         #endregion
@@ -112,20 +113,20 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
         /// </summary>
         public void RecalculateDifficulty()
         {
-            var result = this.difficultyService.CalculateDifficulty(this.difficultyData.CurrentDifficulty, null);
+            var result = this.difficultyService.CalculateDifficulty();
 
-            if (result != null && Math.Abs(result.NewDifficulty - this.difficultyData.CurrentDifficulty) > DifficultyConstants.EPSILON)
+            if (result != null && Math.Abs(result.NewDifficulty - result.PreviousDifficulty) > DifficultyConstants.EPSILON)
             {
-                var oldDifficulty = this.difficultyData.CurrentDifficulty;
-                this.difficultyData.CurrentDifficulty = result.NewDifficulty;
+                // Apply the difficulty through the service
+                this.difficultyService.ApplyDifficulty(result);
 
                 // Save the updated difficulty
                 this.handleUserDataServices.SaveAll();
 
-                this.logger?.Info($"[UITemplateDifficultyController] Manual recalculation: {oldDifficulty:F1} -> {result.NewDifficulty:F1}");
+                this.logger?.Info($"[UITemplateDifficultyController] Manual recalculation: {result.PreviousDifficulty:F1} -> {result.NewDifficulty:F1}");
 
                 // Fire a signal for UI updates
-                this.signalBus.Fire(new DifficultyChangedSignal(oldDifficulty, result.NewDifficulty));
+                this.signalBus.Fire(new DifficultyChangedSignal(result.PreviousDifficulty, result.NewDifficulty));
             }
         }
 
@@ -135,8 +136,8 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
         /// </summary>
         public float PreviewDifficulty()
         {
-            var result = this.difficultyService.CalculateDifficulty(this.difficultyData.CurrentDifficulty, null);
-            return result?.NewDifficulty ?? this.CurrentDifficulty;
+            var result = this.difficultyService.CalculateDifficulty();
+            return result?.NewDifficulty ?? this.difficultyService.CurrentDifficulty;
         }
 
         /// <summary>
@@ -145,9 +146,14 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
         public void ResetDifficulty()
         {
             var defaultDifficulty = this.difficultyService.GetDefaultDifficulty();
-            var oldDifficulty = this.difficultyData.CurrentDifficulty;
+            var oldDifficulty = this.difficultyService.CurrentDifficulty;
 
-            this.difficultyData.CurrentDifficulty = defaultDifficulty;
+            var result = new DifficultyResult
+            {
+                NewDifficulty = defaultDifficulty,
+                PreviousDifficulty = oldDifficulty
+            };
+            this.difficultyService.ApplyDifficulty(result);
             this.handleUserDataServices.SaveAll();
 
             this.logger?.Info($"[UITemplateDifficultyController] Difficulty reset: {oldDifficulty:F1} -> {defaultDifficulty:F1}");

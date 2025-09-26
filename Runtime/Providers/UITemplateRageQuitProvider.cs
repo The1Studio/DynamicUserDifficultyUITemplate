@@ -16,15 +16,12 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
     public class UITemplateRageQuitProvider : IRageQuitProvider
     {
         private readonly UITemplateGameSessionDataController sessionController;
-        private readonly UITemplateLevelDataController levelController;
 
         [Preserve]
         public UITemplateRageQuitProvider(
-            UITemplateGameSessionDataController sessionController,
-            UITemplateLevelDataController levelController)
+            UITemplateGameSessionDataController sessionController)
         {
             this.sessionController = sessionController ?? throw new ArgumentNullException(nameof(sessionController));
-            this.levelController = levelController ?? throw new ArgumentNullException(nameof(levelController));
         }
 
         /// <summary>

@@ -8,12 +8,12 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
     /// Simple implementation of IDifficultyDataProvider that only handles difficulty storage.
     /// This breaks the circular dependency between the controller and service.
     /// </summary>
-    public class SimpleDifficultyDataProvider : IDifficultyDataProvider
+    public class DifficultyDataProvider : IDifficultyDataProvider
     {
         private readonly UITemplateDifficultyData difficultyData;
         private readonly ILogger logger;
 
-        public SimpleDifficultyDataProvider(
+        public DifficultyDataProvider(
             UITemplateDifficultyData difficultyData,
             ILogger logger)
         {
