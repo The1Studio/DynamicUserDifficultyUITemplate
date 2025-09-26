@@ -1,6 +1,7 @@
 namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
 {
     using System;
+    using TheOneStudio.DynamicUserDifficulty.Core;
     using TheOneStudio.DynamicUserDifficulty.Providers;
     using TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.LocalData;
     using UnityEngine;
@@ -29,7 +30,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
         /// </summary>
         public float GetCurrentDifficulty()
         {
-            return this.difficultyData?.CurrentDifficulty ?? UITemplateIntegrationConstants.DEFAULT_DIFFICULTY;
+            return this.difficultyData?.CurrentDifficulty ?? DifficultyConstants.DEFAULT_DIFFICULTY;
         }
 
         /// <summary>
@@ -39,7 +40,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
         {
             if (this.difficultyData != null)
             {
-                this.difficultyData.CurrentDifficulty = Mathf.Clamp(newDifficulty, UITemplateIntegrationConstants.MIN_DIFFICULTY, UITemplateIntegrationConstants.MAX_DIFFICULTY);
+                this.difficultyData.CurrentDifficulty = Mathf.Clamp(newDifficulty, DifficultyConstants.MIN_DIFFICULTY, DifficultyConstants.MAX_DIFFICULTY);
                 this.logger?.Info($"[UITemplateDifficultyDataProvider] Difficulty updated to {newDifficulty:F2}");
             }
         }

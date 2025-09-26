@@ -3,6 +3,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
     using System;
     using System.Linq;
     using TheOne.Logging;
+    using TheOneStudio.DynamicUserDifficulty.Core;
     using TheOneStudio.DynamicUserDifficulty.Providers;
     using global::UITemplate.Scripts.Enum;
     using TheOneStudio.UITemplate.UITemplate.Models;
@@ -71,7 +72,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
 
                 if (levelData == null)
                 {
-                    return UITemplateIntegrationConstants.DEFAULT_DIFFICULTY;
+                    return DifficultyConstants.DEFAULT_DIFFICULTY;
                 }
 
                 // Map LevelDifficulty enum to float value (0=Easy, 1=Normal, 2=Hard, 3=VeryHard)
@@ -101,7 +102,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
                 var allLevels = this.levelController?.GetAllLevels();
                 if (allLevels == null || allLevels.Count == 0)
                 {
-                    return UITemplateIntegrationConstants.DEFAULT_COMPLETION_TIME_SECONDS;
+                    return DifficultyConstants.DEFAULT_COMPLETION_TIME_SECONDS;
                 }
 
                 // Get completed levels with valid win times
@@ -112,7 +113,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
 
                 if (completedLevels.Count == 0)
                 {
-                    return UITemplateIntegrationConstants.DEFAULT_COMPLETION_TIME_SECONDS;
+                    return DifficultyConstants.DEFAULT_COMPLETION_TIME_SECONDS;
                 }
 
                 return completedLevels.Average();

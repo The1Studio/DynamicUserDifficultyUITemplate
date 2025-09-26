@@ -71,7 +71,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
             // We just need to trigger the calculation with the current difficulty
             var result = this.difficultyService.CalculateDifficulty(this.difficultyData.CurrentDifficulty, null);
 
-            if (result != null && Math.Abs(result.NewDifficulty - this.difficultyData.CurrentDifficulty) > UITemplateIntegrationConstants.DIFFICULTY_CHANGE_THRESHOLD)
+            if (result != null && Math.Abs(result.NewDifficulty - this.difficultyData.CurrentDifficulty) > DifficultyConstants.EPSILON)
             {
                 var oldDifficulty = this.difficultyData.CurrentDifficulty;
                 this.difficultyData.CurrentDifficulty = result.NewDifficulty;
@@ -102,7 +102,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
         {
             var result = this.difficultyService.CalculateDifficulty(this.difficultyData.CurrentDifficulty, null);
 
-            if (result != null && Math.Abs(result.NewDifficulty - this.difficultyData.CurrentDifficulty) > UITemplateIntegrationConstants.DIFFICULTY_CHANGE_THRESHOLD)
+            if (result != null && Math.Abs(result.NewDifficulty - this.difficultyData.CurrentDifficulty) > DifficultyConstants.EPSILON)
             {
                 var oldDifficulty = this.difficultyData.CurrentDifficulty;
                 this.difficultyData.CurrentDifficulty = result.NewDifficulty;

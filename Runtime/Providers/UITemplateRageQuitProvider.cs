@@ -46,13 +46,13 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
                 var shortSession = lastSession.Duration < DifficultyConstants.RAGE_QUIT_TIME_THRESHOLD;
                 var hadLosses = lastSession.LevelsFailed > 0;
                 var noWins = lastSession.LevelsCompleted == 0;
-                var endedAfterLoss = !lastSession.LastLevelWon && lastSession.TimeSinceLastLevel < UITemplateIntegrationConstants.SHORT_SESSION_THRESHOLD_SECONDS;
+                var endedAfterLoss = !lastSession.LastLevelWon && lastSession.TimeSinceLastLevel < DifficultyConstants.SHORT_SESSION_THRESHOLD_SECONDS;
 
                 if (shortSession && hadLosses && (noWins || endedAfterLoss))
                 {
                     return QuitType.RageQuit;
                 }
-                else if (lastSession.Duration > UITemplateIntegrationConstants.NORMAL_SESSION_THRESHOLD_SECONDS)
+                else if (lastSession.Duration > DifficultyConstants.NORMAL_SESSION_THRESHOLD_SECONDS)
                 {
                     return QuitType.Normal;
                 }
@@ -76,12 +76,12 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
             try
             {
                 // Use the existing method from session controller
-                return this.sessionController?.GetAverageSessionDuration() ?? UITemplateIntegrationConstants.DEFAULT_SESSION_DURATION_SECONDS;
+                return this.sessionController?.GetAverageSessionDuration() ?? DifficultyConstants.DEFAULT_SESSION_DURATION_SECONDS;
             }
             catch (Exception ex)
             {
                 Debug.LogWarning($"[UITemplateRageQuitProvider] Error getting average session duration: {ex.Message}");
-                return UITemplateIntegrationConstants.DEFAULT_SESSION_DURATION_SECONDS;
+                return DifficultyConstants.DEFAULT_SESSION_DURATION_SECONDS;
             }
         }
 
