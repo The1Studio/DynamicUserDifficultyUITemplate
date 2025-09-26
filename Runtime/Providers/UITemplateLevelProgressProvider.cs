@@ -75,15 +75,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
                     return DifficultyConstants.DEFAULT_DIFFICULTY;
                 }
 
-                // Map LevelDifficulty enum to float value (0=Easy, 1=Normal, 2=Hard, 3=VeryHard)
-                return levelData.StaticDifficulty switch
-                {
-                    LevelDifficulty.Easy => UITemplateIntegrationConstants.EASY_DIFFICULTY_VALUE,
-                    LevelDifficulty.Normal => UITemplateIntegrationConstants.NORMAL_DIFFICULTY_VALUE,
-                    LevelDifficulty.Hard => UITemplateIntegrationConstants.HARD_DIFFICULTY_VALUE,
-                    LevelDifficulty.VeryHard => UITemplateIntegrationConstants.VERY_HARD_DIFFICULTY_VALUE,
-                    _ => DifficultyConstants.DEFAULT_DIFFICULTY,
-                };
+                return levelData.DynamicDifficulty;
             }
             catch (Exception ex)
             {

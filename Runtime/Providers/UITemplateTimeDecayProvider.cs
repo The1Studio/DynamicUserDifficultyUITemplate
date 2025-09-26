@@ -38,7 +38,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
                 }
 
                 // Get the most recent session's end time
-                var lastSession = sessionHistory[sessionHistory.Count - 1];
+                var lastSession       = sessionHistory[^1];
                 var timeSinceLastPlay = DateTime.UtcNow - lastSession.EndTime;
 
                 // Ensure we don't return negative time spans
@@ -64,7 +64,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
                     return DateTime.UtcNow.AddDays(-UITemplateIntegrationConstants.DEFAULT_DAYS_AGO); // Default to 1 day ago if no history
                 }
 
-                return sessionHistory[sessionHistory.Count - 1].EndTime;
+                return sessionHistory[^1].EndTime;
             }
             catch (Exception ex)
             {

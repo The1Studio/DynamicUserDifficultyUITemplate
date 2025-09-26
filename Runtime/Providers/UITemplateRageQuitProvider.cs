@@ -40,7 +40,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
                     return QuitType.Normal;
                 }
 
-                var lastSession = sessionHistory[sessionHistory.Count - 1];
+                var lastSession = sessionHistory[^1];
 
                 // Determine quit type based on session characteristics
                 var shortSession = lastSession.Duration < DifficultyConstants.RAGE_QUIT_TIME_THRESHOLD;

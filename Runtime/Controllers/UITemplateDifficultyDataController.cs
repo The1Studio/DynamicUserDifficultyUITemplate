@@ -23,6 +23,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
         private readonly SignalBus                 signalBus;
         private readonly IDynamicDifficultyService difficultyService;
         private readonly IHandleUserDataServices   handleUserDataServices;
+        private readonly UITemplateLevelDataController levelController;
         private readonly ILogger                   logger;
 
         [Preserve]
@@ -31,12 +32,14 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
             SignalBus signalBus,
             IHandleUserDataServices handleUserDataServices,
             IDynamicDifficultyService difficultyService,
+            UITemplateLevelDataController levelController,
             ILogger logger)
         {
             this.difficultyData        = difficultyData;
             this.signalBus             = signalBus;
             this.handleUserDataServices = handleUserDataServices;
             this.difficultyService     = difficultyService;
+            this.levelController       = levelController;
             this.logger                = logger;
 
             // Initialize difficulty for new players
@@ -76,6 +79,10 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
                 var oldDifficulty = this.difficultyData.CurrentDifficulty;
                 this.difficultyData.CurrentDifficulty = result.NewDifficulty;
 
+                // Also update the level's dynamic difficulty for future reference
+                var levelData = this.levelController.GetLevelData(signal.Level);
+                levelData.DynamicDifficulty = result.NewDifficulty;
+
                 // Save the updated difficulty
                 this.handleUserDataServices.SaveAll();
 
@@ -84,6 +91,12 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
 
                 // Fire a signal for UI updates if needed
                 this.signalBus.Fire(new DifficultyChangedSignal(oldDifficulty, result.NewDifficulty));
+            }
+            else if (result != null)
+            {
+                // Even if difficulty didn't change significantly, update level's dynamic difficulty
+                var levelData = this.levelController.GetLevelData(signal.Level);
+                levelData.DynamicDifficulty = this.difficultyData.CurrentDifficulty;
             }
 
             var levelResult = signal.IsWin ? "Won" : "Lost";
