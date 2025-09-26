@@ -5,7 +5,6 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
     using TheOne.Logging;
     using TheOneStudio.DynamicUserDifficulty.Core;
     using TheOneStudio.DynamicUserDifficulty.Providers;
-    using global::UITemplate.Scripts.Enum;
     using TheOneStudio.UITemplate.UITemplate.Models;
     using TheOneStudio.UITemplate.UITemplate.Models.Controllers;
     using TheOneStudio.UITemplate.UITemplate.Models.LocalDatas;

@@ -1,7 +1,6 @@
 namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
 {
     using System;
-    using GameFoundation.DI;
     using GameFoundation.Scripts.Utilities.UserData;
     using GameFoundation.Signals;
     using TheOne.Logging;
