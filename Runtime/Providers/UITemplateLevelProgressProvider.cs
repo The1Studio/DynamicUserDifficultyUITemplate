@@ -31,7 +31,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
         /// </summary>
         public int GetCurrentLevel()
         {
-            return this.levelController?.CurrentLevel ?? 1;
+            return this.levelController?.CurrentLevel ?? DifficultyConstants.DEFAULT_STARTING_LEVEL;
         }
 
         /// <summary>
@@ -144,6 +144,29 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
             {
                 this.logger?.Warning($"[UITemplateLevelProgressProvider] Error getting completion rate: {ex.Message}");
                 return 0f;
+            }
+        }
+
+        /// <summary>
+        /// Gets the performance percentage for current level completion time.
+        /// </summary>
+        public float GetCurrentLevelTimePercentage()
+        {
+            try
+            {
+                var levelData = this.levelController.GetCurrentLevelData;
+
+                if (levelData == null)
+                {
+                    return DifficultyConstants.DEFAULT_TIME_PERCENTAGE; // Default to 100% if no data
+                }
+
+                return levelData.PercentUsingTimeToComplete;
+            }
+            catch (Exception ex)
+            {
+                this.logger?.Warning($"[UITemplateLevelProgressProvider] Error getting current level time percentage: {ex.Message}");
+                return DifficultyConstants.DEFAULT_TIME_PERCENTAGE;
             }
         }
 
