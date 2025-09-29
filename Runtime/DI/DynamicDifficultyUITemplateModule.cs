@@ -2,6 +2,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.DI
 {
     using TheOneStudio.DynamicUserDifficulty.DI;
     using TheOneStudio.DynamicUserDifficulty.Providers;
+    using TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers;
     using TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers;
     using VContainer;
 
@@ -22,8 +23,13 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.DI
             // Register focused providers - Single Responsibility Principle
             // Each provider handles only its specific concern
 
-            // Difficulty data persistence
-            builder.Register<UITemplateDifficultyDataProvider>(Lifetime.Singleton)
+            // Register the controller first (manages difficulty state via service)
+            builder.Register<UITemplateDifficultyDataController>(Lifetime.Singleton)
+                .AsImplementedInterfaces()
+                .AsSelf();
+
+            // Difficulty data persistence (delegates to controller)
+            builder.Register<DifficultyDataProvider>(Lifetime.Singleton)
                 .As<IDifficultyDataProvider>();
 
             // Win/loss streak tracking
