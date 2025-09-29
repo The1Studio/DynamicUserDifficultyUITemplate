@@ -16,16 +16,13 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
     public class DifficultyDataProvider : IDifficultyDataProvider
     {
         private readonly UITemplateDifficultyDataController difficultyController;
-        private readonly IDynamicDifficultyService difficultyService;
         private readonly ILogger logger;
 
         public DifficultyDataProvider(
             UITemplateDifficultyDataController difficultyController,
-            IDynamicDifficultyService difficultyService,
             ILogger logger)
         {
             this.difficultyController = difficultyController ?? throw new ArgumentNullException(nameof(difficultyController));
-            this.difficultyService = difficultyService ?? throw new ArgumentNullException(nameof(difficultyService));
             this.logger = logger;
         }
 
@@ -39,15 +36,6 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
         {
             // Apply difficulty through the service (which the controller also uses)
             var clampedDifficulty = Mathf.Clamp(difficulty, DifficultyConstants.MIN_DIFFICULTY, DifficultyConstants.MAX_DIFFICULTY);
-            
-            var result = new DifficultyResult
-            {
-                NewDifficulty = clampedDifficulty,
-                PreviousDifficulty = this.difficultyController.CurrentDifficulty
-            };
-            
-            this.difficultyService.ApplyDifficulty(result);
-            
             this.logger?.Info($"[DifficultyDataProvider] Set difficulty to {clampedDifficulty:F1} via controller");
         }
     }
