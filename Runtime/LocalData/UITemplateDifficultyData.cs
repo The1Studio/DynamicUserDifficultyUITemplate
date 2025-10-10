@@ -19,6 +19,9 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.LocalData
         // Core difficulty value - this is the ONLY value we need to store
         [JsonProperty] [ShowInInspector] public float CurrentDifficulty { get; set; } = DifficultyConstants.DEFAULT_DIFFICULTY;
 
+        // Track previous difficulty for session pattern analysis
+        [JsonProperty] [ShowInInspector] public float PreviousDifficulty { get; set; } = DifficultyConstants.DEFAULT_DIFFICULTY;
+
         public void Init()
         {
             // Initialize any runtime data if needed

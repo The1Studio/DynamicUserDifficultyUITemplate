@@ -2,10 +2,10 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.DI
 {
     using TheOneStudio.DynamicUserDifficulty.DI;
     using TheOneStudio.DynamicUserDifficulty.Providers;
-    using TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers;
     using TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers;
     using VContainer;
     using TheOneStudio.DynamicUserDifficulty.UITemplateIntegration;
+    using UnityEngine;
 
     /// <summary>
     /// VContainer extension methods for registering Dynamic User Difficulty with UITemplate integration.
@@ -21,6 +21,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.DI
         /// <returns>Container builder for chaining</returns>
         public static void RegisterDynamicDifficultyUITemplate(this IContainerBuilder builder)
         {
+            Debug.Log("DifficultyAdapter");
 
             // Install the core Dynamic Difficulty module
             // This registers the service, calculator, and modifiers
@@ -46,8 +47,13 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.DI
             builder.Register<UITemplateLevelProgressProvider>(Lifetime.Singleton)
                 .As<ILevelProgressProvider>();
 
+            // Session pattern analysis (advanced features)
+            builder.Register<UITemplateSessionPatternProvider>(Lifetime.Singleton)
+                .As<ISessionPatternProvider>();
+
             // Register the adapter that handles business logic
-            builder.Register<DifficultyAdapter>(Lifetime.Singleton);
+            builder.Register<DifficultyAdapter>(Lifetime.Singleton).AsInterfacesAndSelf();
+            builder.AutoResolve<DifficultyAdapter>();
         }
     }
 }

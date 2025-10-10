@@ -5,6 +5,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
     using TheOne.Features.WinStreak.Core.Controller;
     using TheOneStudio.DynamicUserDifficulty.Providers;
     using TheOneStudio.UITemplate.UITemplate.Models.Controllers;
+    using UnityEngine;
     using UnityEngine.Scripting;
 
     /// <summary>
@@ -32,7 +33,11 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
         public int GetWinStreak()
         {
             // Use WinStreakLocalDataController which has the Streak property
-            return this.winStreakController?.Streak ?? 0;
+            var winStreak = this.winStreakController?.Streak ?? 0;
+            var lossStreak = this.winStreakController?.LossStreak ?? 0;
+            Debug.Log($"[UITemplateWinStreakProvider] GetWinStreak() → Win:{winStreak}, Loss:{lossStreak}");
+            Debug.Log($"[UITemplateWinStreakProvider] ⚠️  NOTE: Streak may be 0 if LoseStreakViaPlay() was called at level start!");
+            return winStreak;
         }
 
         /// <summary>
@@ -41,7 +46,9 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
         public int GetLossStreak()
         {
             // Use WinStreakLocalDataController which has the LossStreak property
-            return this.winStreakController?.LossStreak ?? 0;
+            var lossStreak = this.winStreakController?.LossStreak ?? 0;
+            Debug.Log($"[UITemplateWinStreakProvider] GetLossStreak() → {lossStreak}");
+            return lossStreak;
         }
 
         /// <summary>

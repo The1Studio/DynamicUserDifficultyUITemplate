@@ -31,6 +31,8 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
         /// <param name="difficulty">The difficulty value to save</param>
         public void UpdateDifficulty(float difficulty)
         {
+            // Store previous difficulty before updating
+            this.difficultyData.PreviousDifficulty = this.difficultyData.CurrentDifficulty;
             this.difficultyData.CurrentDifficulty = difficulty;
         }
 
@@ -42,6 +44,16 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
         public float GetDifficulty()
         {
             return this.difficultyData.CurrentDifficulty;
+        }
+
+        /// <summary>
+        /// Gets the previous difficulty value (before last adjustment).
+        /// Used for session pattern analysis to track adjustment effectiveness.
+        /// </summary>
+        /// <returns>The previous difficulty value</returns>
+        public float GetPreviousDifficulty()
+        {
+            return this.difficultyData.PreviousDifficulty;
         }
 
         #endregion
