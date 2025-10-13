@@ -1,12 +1,9 @@
 namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.LocalData
 {
-    using System;
-    using GameFoundation.Scripts.Interfaces;
     using Newtonsoft.Json;
     using Sirenix.OdinInspector;
+    using TheOne.Data;
     using TheOneStudio.DynamicUserDifficulty.Core;
-    using TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers;
-    using TheOneStudio.UITemplate.UITemplate.Models.LocalDatas;
     using UnityEngine.Scripting;
 
     /// <summary>
@@ -14,25 +11,12 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.LocalData
     /// ONLY stores the current difficulty value - all other data comes from existing UITemplate/TheOne controllers.
     /// </summary>
     [Preserve]
-    public class UITemplateDifficultyData : ILocalData, IUITemplateLocalData
+    public class UITemplateDifficultyData : IWritableData
     {
         // Core difficulty value - this is the ONLY value we need to store
         [JsonProperty] [ShowInInspector] public float CurrentDifficulty { get; set; } = DifficultyConstants.DEFAULT_DIFFICULTY;
 
         // Track previous difficulty for session pattern analysis
         [JsonProperty] [ShowInInspector] public float PreviousDifficulty { get; set; } = DifficultyConstants.DEFAULT_DIFFICULTY;
-
-        public void Init()
-        {
-            // Initialize any runtime data if needed
-        }
-
-        public void OnDataLoaded()
-        {
-            // Called when data is loaded from storage
-            // Can be used to migrate old data formats if needed
-        }
-
-        public Type ControllerType => typeof(UITemplateDifficultyDataController);
     }
 }

@@ -15,7 +15,10 @@
         "GameFoundation.Models",
         "VContainer",
         "UniTask",
-        "WinStreak.Core"
+        "WinStreak.Core",
+        "UITemplate.Models",
+        "TheOne.Data",
+        "GameFoundation.UserData"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -5,6 +5,8 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.DI
     using TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers;
     using VContainer;
     using TheOneStudio.DynamicUserDifficulty.UITemplateIntegration;
+    using TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers;
+    using TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.LocalData;
     using UnityEngine;
 
     /// <summary>
@@ -50,6 +52,8 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.DI
             // Session pattern analysis (advanced features)
             builder.Register<UITemplateSessionPatternProvider>(Lifetime.Singleton)
                 .As<ISessionPatternProvider>();
+
+            builder.Register<UITemplateDifficultyDataController>(Lifetime.Singleton);
 
             // Register the adapter that handles business logic
             builder.Register<DifficultyAdapter>(Lifetime.Singleton).AsInterfacesAndSelf();

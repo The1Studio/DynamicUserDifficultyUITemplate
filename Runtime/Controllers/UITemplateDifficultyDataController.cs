@@ -1,8 +1,7 @@
 namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
 {
-    using TheOneStudio.DynamicUserDifficulty.Core;
+    using GameFoundation.Scripts.UserData;
     using TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.LocalData;
-    using TheOneStudio.UITemplate.UITemplate.Models.Controllers;
     using UnityEngine.Scripting;
 
     /// <summary>
@@ -11,15 +10,16 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
     /// All business logic is handled by DifficultyAdapter.
     /// </summary>
     [Preserve]
-    public class UITemplateDifficultyDataController : IUITemplateControllerData
+    public class UITemplateDifficultyDataController
     {
-        private readonly UITemplateDifficultyData    difficultyData;
+        private readonly UserDataManager          userDataManager;
+
+        private UITemplateDifficultyData difficultyData => this.userDataManager.Get<UITemplateDifficultyData>();
 
         [Preserve]
-        public UITemplateDifficultyDataController(
-            UITemplateDifficultyData difficultyData)
+        public UITemplateDifficultyDataController(UserDataManager userDataManager)
         {
-            this.difficultyData    = difficultyData;
+            this.userDataManager = userDataManager;
         }
 
         #region Data API

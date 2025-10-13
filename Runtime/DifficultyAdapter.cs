@@ -2,7 +2,6 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration
 {
     using System;
     using GameFoundation.DI;
-    using GameFoundation.Scripts.Utilities.UserData;
     using GameFoundation.Signals;
     using TheOneStudio.DynamicUserDifficulty.Core;
     using TheOneStudio.DynamicUserDifficulty.Models;
@@ -23,7 +22,6 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration
     {
         private readonly SignalBus                     signalBus;
         private readonly IDynamicDifficultyService     difficultyService;
-        private readonly IHandleUserDataServices       handleUserDataServices;
         private readonly UITemplateLevelDataController levelController;
         private readonly ILogger                       logger;
 
@@ -31,14 +29,12 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration
         public DifficultyAdapter(
             SignalBus                     signalBus,
             IDynamicDifficultyService     difficultyService,
-            IHandleUserDataServices       handleUserDataServices,
             UITemplateLevelDataController levelController,
             ILogger                       logger
         )
         {
             this.signalBus              = signalBus;
             this.difficultyService      = difficultyService;
-            this.handleUserDataServices = handleUserDataServices;
             this.levelController        = levelController;
             this.logger                 = logger;
             Debug.Log($"[DifficultyAdapter] Constructed with logger: {this.logger != null}");

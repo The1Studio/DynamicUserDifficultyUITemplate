@@ -42,8 +42,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
             try
             {
                 var currentLevel = this.GetCurrentLevel();
-                var currentMode  = this.levelController?.CurrentMode ?? UITemplateUserLevelData.ClassicMode;
-                var levelData    = this.levelController?.GetLevelData(currentLevel, currentMode);
+                var levelData    = this.levelController?.GetLevelData(currentLevel);
 
                 if (levelData == null)
                 {
@@ -90,8 +89,8 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
         {
             try
             {
-                var allLevels = this.levelController?.GetAllLevels();
-                if (allLevels == null || allLevels.Count == 0)
+                var allLevels = this.levelController?.GetAllLevelData().ToList();
+                if (allLevels == null || !allLevels.Any())
                 {
                     return DifficultyConstants.DEFAULT_COMPLETION_TIME_SECONDS;
                 }
@@ -123,8 +122,8 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
         {
             try
             {
-                var allLevels = this.levelController?.GetAllLevels();
-                if (allLevels == null || allLevels.Count == 0)
+                var allLevels = this.levelController?.GetAllLevelData().ToList();
+                if (allLevels == null || !allLevels.Any())
                 {
                     return 0f;
                 }

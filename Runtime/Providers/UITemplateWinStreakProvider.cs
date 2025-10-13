@@ -57,7 +57,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
         public int GetTotalWins()
         {
             // Sum up all wins from level data
-            var allLevels = this.levelController?.GetAllLevels();
+            var allLevels = this.levelController?.GetAllLevelData().ToList();
             if (allLevels == null) return 0;
 
             return allLevels.Sum(level => level.WinCount);
@@ -69,7 +69,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
         public int GetTotalLosses()
         {
             // Sum up all losses from level data
-            var allLevels = this.levelController?.GetAllLevels();
+            var allLevels = this.levelController?.GetAllLevelData().ToList();
             if (allLevels == null) return 0;
 
             return allLevels.Sum(level => level.LoseCount);
