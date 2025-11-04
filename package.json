@@ -1,6 +1,6 @@
 {
   "name": "com.theone.dynamicuserdifficulty.uitemplateintegration",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "displayName": "Dynamic User Difficulty - UITemplate Integration",
   "description": "Complete UITemplate integration for Dynamic User Difficulty module with comprehensive provider implementations. Provides automatic data persistence, signal handling, and seamless integration with UITemplate's controller pattern using all 7 difficulty modifiers.",
   "unity": "2021.3",
