@@ -424,11 +424,53 @@ Part of TheOne Studio's game development framework.
 
 ---
 
+## 🔄 Migration Notes
+
+### Branch Migration: main → master
+
+**Date**: November 4, 2025
+
+This repository has been migrated from using `main` as the default branch to `master`. For detailed migration instructions, see [Migration Notes](docs/migration-notes.md).
+
+**Quick Update for Existing Clones**:
+```bash
+git fetch origin
+git checkout master
+git pull origin master
+```
+
+**For Submodule Users**:
+```bash
+# In the submodule directory
+cd Packages/DynamicUserDifficultyUITemplate
+git checkout master
+git pull
+
+# Commit the submodule update in parent project
+cd ../..
+git add Packages/DynamicUserDifficultyUITemplate
+git commit -m "Update DynamicUserDifficultyUITemplate to master branch"
+```
+
+---
+
+## 📚 Documentation
+
+Complete documentation is available in the `docs/` directory:
+
+- **[Project Overview](docs/project-overview.md)** - Comprehensive project overview and features
+- **[Architecture](docs/architecture.md)** - System architecture and design patterns
+- **[Migration Notes](docs/migration-notes.md)** - Branch migration details and procedures
+
+---
+
 <div align="center">
 
-**[Quick Start](#-quick-start)** • **[7 Modifiers](#-complete-modifier-support)** • **[Provider Coverage](#provider-method-utilization-2121-100)** • **[Production Ready](#-production-ready-features)**
+**[Quick Start](#-quick-start)** • **[7 Modifiers](#-complete-modifier-support)** • **[Provider Coverage](#provider-method-utilization-2121-100)** • **[Production Ready](#-production-ready-features)** • **[Documentation](docs/)**
 
 ✅ **PRODUCTION-READY** • 7 Comprehensive Modifiers • 21/21 Provider Methods • 100% UITemplate Integration
+
+**Default Branch**: `master` (migrated from `main` on 2025-11-04)
 
 Made with ❤️ by TheOne Studio
 
