@@ -1,3 +1,5 @@
+#nullable enable
+
 namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
 {
     using GameFoundation.Scripts.UserData;
@@ -10,7 +12,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Controllers
     /// All business logic is handled by DifficultyAdapter.
     /// </summary>
     [Preserve]
-    public class UITemplateDifficultyDataController
+    public sealed class UITemplateDifficultyDataController
     {
         private readonly UserDataManager          userDataManager;
 

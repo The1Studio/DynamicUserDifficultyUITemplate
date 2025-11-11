@@ -1,3 +1,5 @@
+#nullable enable
+
 namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
 {
     using System;
@@ -16,7 +18,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
     /// Implements detailed session history analysis for SessionPatternModifier.
     /// </summary>
     [Preserve]
-    public class UITemplateSessionPatternProvider : ISessionPatternProvider
+    public sealed class UITemplateSessionPatternProvider : ISessionPatternProvider
     {
         private readonly UITemplateGameSessionDataController sessionController;
         private readonly UITemplateDifficultyDataController difficultyController;
@@ -57,7 +59,9 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
             }
             catch (Exception ex)
             {
+                #if UNITY_EDITOR || DEVELOPMENT_BUILD
                 Debug.LogWarning($"[UITemplateSessionPatternProvider] Error getting recent session durations: {ex.Message}");
+                #endif
                 return new();
             }
         }
@@ -81,7 +85,9 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
             }
             catch (Exception ex)
             {
+                #if UNITY_EDITOR || DEVELOPMENT_BUILD
                 Debug.LogWarning($"[UITemplateSessionPatternProvider] Error getting total recent quits: {ex.Message}");
+                #endif
                 return 0;
             }
         }
@@ -122,7 +128,9 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
             }
             catch (Exception ex)
             {
+                #if UNITY_EDITOR || DEVELOPMENT_BUILD
                 Debug.LogWarning($"[UITemplateSessionPatternProvider] Error getting recent mid-level quits: {ex.Message}");
+                #endif
                 return 0;
             }
         }
@@ -140,7 +148,9 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
             }
             catch (Exception ex)
             {
+                #if UNITY_EDITOR || DEVELOPMENT_BUILD
                 Debug.LogWarning($"[UITemplateSessionPatternProvider] Error getting previous difficulty: {ex.Message}");
+                #endif
                 return 0f;
             }
         }
@@ -163,7 +173,9 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
             }
             catch (Exception ex)
             {
+                #if UNITY_EDITOR || DEVELOPMENT_BUILD
                 Debug.LogWarning($"[UITemplateSessionPatternProvider] Error getting session duration before last adjustment: {ex.Message}");
+                #endif
                 return 0f;
             }
         }

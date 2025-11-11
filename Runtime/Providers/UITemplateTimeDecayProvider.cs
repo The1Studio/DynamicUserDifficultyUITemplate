@@ -1,3 +1,5 @@
+#nullable enable
+
 namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
 {
     using System;
@@ -11,7 +13,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
     /// Handles time since last play for difficulty adjustment.
     /// </summary>
     [Preserve]
-    public class UITemplateTimeDecayProvider : ITimeDecayProvider
+    public sealed class UITemplateTimeDecayProvider : ITimeDecayProvider
     {
         private readonly UITemplateGameSessionDataController sessionController;
         private readonly ILogger logger;

@@ -1,3 +1,5 @@
+#nullable enable
+
 namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
 {
     using System;
@@ -12,7 +14,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
     /// This provider acts as a bridge between the difficulty service and UITemplate's data system.
     /// All data persistence is delegated to the controller which uses UITemplateDifficultyData.
     /// </summary>
-    public class DifficultyDataProvider : IDifficultyDataProvider
+    public sealed class DifficultyDataProvider : IDifficultyDataProvider
     {
         private readonly UITemplateDifficultyDataController difficultyController;
         private readonly ILogger logger;

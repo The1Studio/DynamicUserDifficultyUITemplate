@@ -1,3 +1,5 @@
+#nullable enable
+
 namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
 {
     using System;
@@ -13,7 +15,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
     /// Reads data from existing UITemplate controllers without duplication.
     /// </summary>
     [Preserve]
-    public class UITemplateWinStreakProvider : IWinStreakProvider
+    public sealed class UITemplateWinStreakProvider : IWinStreakProvider
     {
         private readonly UITemplateLevelDataController levelController;
         private readonly WinStreakLocalDataController winStreakController;
@@ -35,8 +37,12 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
             // Use WinStreakLocalDataController which has the Streak property
             var winStreak = this.winStreakController?.Streak ?? 0;
             var lossStreak = this.winStreakController?.LossStreak ?? 0;
+            #if UNITY_EDITOR || DEVELOPMENT_BUILD
             Debug.Log($"[UITemplateWinStreakProvider] GetWinStreak() → Win:{winStreak}, Loss:{lossStreak}");
+            #endif
+            #if UNITY_EDITOR || DEVELOPMENT_BUILD
             Debug.Log($"[UITemplateWinStreakProvider] ⚠️  NOTE: Streak may be 0 if LoseStreakViaPlay() was called at level start!");
+            #endif
             return winStreak;
         }
 
@@ -47,7 +53,9 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
         {
             // Use WinStreakLocalDataController which has the LossStreak property
             var lossStreak = this.winStreakController?.LossStreak ?? 0;
+            #if UNITY_EDITOR || DEVELOPMENT_BUILD
             Debug.Log($"[UITemplateWinStreakProvider] GetLossStreak() → {lossStreak}");
+            #endif
             return lossStreak;
         }
 

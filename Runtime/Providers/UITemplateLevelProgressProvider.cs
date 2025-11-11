@@ -1,3 +1,5 @@
+#nullable enable
+
 namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
 {
     using System;
@@ -14,7 +16,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
     /// Tracks attempts, completion times, and difficulty patterns.
     /// </summary>
     [Preserve]
-    public class UITemplateLevelProgressProvider : ILevelProgressProvider
+    public sealed class UITemplateLevelProgressProvider : ILevelProgressProvider
     {
         private readonly UITemplateLevelDataController levelController;
         private readonly ILogger logger;

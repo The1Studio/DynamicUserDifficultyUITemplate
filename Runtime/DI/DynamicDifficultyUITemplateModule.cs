@@ -1,3 +1,5 @@
+#nullable enable
+
 namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.DI
 {
     using TheOneStudio.DynamicUserDifficulty.DI;
@@ -23,7 +25,9 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.DI
         /// <returns>Container builder for chaining</returns>
         public static void RegisterDynamicDifficultyUITemplate(this IContainerBuilder builder)
         {
+            #if UNITY_EDITOR || DEVELOPMENT_BUILD
             Debug.Log("DifficultyAdapter");
+            #endif
 
             // Install the core Dynamic Difficulty module
             // This registers the service, calculator, and modifiers
