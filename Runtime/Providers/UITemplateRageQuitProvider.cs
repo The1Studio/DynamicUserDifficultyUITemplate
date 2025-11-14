@@ -1,3 +1,5 @@
+#nullable enable
+
 namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
 {
     using System;
@@ -13,7 +15,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
     /// Analyzes session patterns to identify frustration-based quits.
     /// </summary>
     [Preserve]
-    public class UITemplateRageQuitProvider : IRageQuitProvider
+    public sealed class UITemplateRageQuitProvider : IRageQuitProvider
     {
         private readonly UITemplateGameSessionDataController sessionController;
 
@@ -60,7 +62,9 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
             }
             catch (Exception ex)
             {
+                #if UNITY_EDITOR || DEVELOPMENT_BUILD
                 Debug.LogWarning($"[UITemplateRageQuitProvider] Error detecting quit type: {ex.Message}");
+                #endif
                 return QuitType.Normal;
             }
         }
@@ -77,7 +81,9 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
             }
             catch (Exception ex)
             {
+                #if UNITY_EDITOR || DEVELOPMENT_BUILD
                 Debug.LogWarning($"[UITemplateRageQuitProvider] Error getting average session duration: {ex.Message}");
+                #endif
                 return DifficultyConstants.DEFAULT_SESSION_DURATION_SECONDS;
             }
         }
@@ -95,7 +101,9 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
             }
             catch (Exception ex)
             {
+                #if UNITY_EDITOR || DEVELOPMENT_BUILD
                 Debug.LogWarning($"[UITemplateRageQuitProvider] Error getting current session duration: {ex.Message}");
+                #endif
                 return 0f;
             }
         }
@@ -134,7 +142,9 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.Providers
             }
             catch (Exception ex)
             {
+                #if UNITY_EDITOR || DEVELOPMENT_BUILD
                 Debug.LogWarning($"[UITemplateRageQuitProvider] Error getting recent rage quit count: {ex.Message}");
+                #endif
                 return 0;
             }
         }

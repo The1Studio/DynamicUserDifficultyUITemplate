@@ -1,3 +1,5 @@
+#nullable enable
+
 namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.LocalData
 {
     using Newtonsoft.Json;
@@ -11,7 +13,7 @@ namespace TheOneStudio.DynamicUserDifficulty.UITemplateIntegration.LocalData
     /// ONLY stores the current difficulty value - all other data comes from existing UITemplate/TheOne controllers.
     /// </summary>
     [Preserve]
-    public class UITemplateDifficultyData : IWritableData
+    public sealed class UITemplateDifficultyData : IWritableData
     {
         // Core difficulty value - this is the ONLY value we need to store
         [JsonProperty] [ShowInInspector] public float CurrentDifficulty { get; set; } = DifficultyConstants.DEFAULT_DIFFICULTY;
